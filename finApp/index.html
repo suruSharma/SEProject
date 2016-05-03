@@ -2,7 +2,7 @@
 {% autoescape true %}
 <html>
   <head>
-    <title>Reservation System</title>
+    <title>ToalMoal - Financial Mgmt Tool</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">  
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -16,174 +16,25 @@
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav navbar-right">
         <li><a href='/'>HOME</a></li>
-        {% if userPage == "yes" %}
-            <li><a href="#reservations">USER'S RESERVATIONS</a></li>
-        {% else %}
-            <li><a href="#reservations">YOUR RESERVATIONS</a></li>
-        {% endif %}
-        {% if userPage == "no" %}
-            <li><a href="#allResources">ALL RESOURCES</a></li>
-        {% endif %}
-        
-        {% if userPage == "yes" %}
-            <li><a href="#reservations">USER'S RESOURCES</a></li>
-        {% else %}
-            <li><a href="#userResources">YOUR RESOURCES</a></li>
-        {% endif %}
-        {% if userPage == "no" %}
-        <li><a href="/add">ADD RESOURCE</a></li>
-        <li><a href="/addImage">ADD IMAGE RESOURCE</a></li>
-      {% endif %}
-        <li><a href="{{ url|safe }}">{{ url_linktext }}</a></li>
+        <div class="dropdown">
+            <button class="dropbtn">OPTIONS</button>
+            <div class="dropdown-content">
+                <a href="{{ url|safe }}">LOGOUT</a>
+                <a href="/profile">Profile</a>
+                <a href="#">Create household</a>
+            </div>
+        </div>
       </ul>
     </div>
   </div>
 </nav>
 
 <div class="jumbotron text-center">
-        {% if userPage == "yes" %}
-            <h1>Details of {{user}}</h1>
-        {% else %}
             <h1>Hi {{user}}</h1>
             <div id="formDiv" class="container">
             <form class="form-horizontal" id="searchForm" role="form" action="/search" method="get">
-                <div class="form-group">
-                    <div class="col-sm-8">
-                       <input type="text" class="form-control" id="searchName" name = "searchName" placeholder="Resource Name" required>
-                    </div>
-                    <div class="col-sm-4">
-                       <span class="icon-input-btn"><span class="glyphicon glyphicon-search"></span> <input type="submit" class="btn btn-primary" value="SEARCH"></span>
-                    </div>
-                </div>
             </form>
             </div>
-        {% endif %} 
-    </div>
-
-<div id="reservations" class="container-fluid">
-    <div class="container">
-    {% if userPage == "yes" %}
-        <h2>USER'S RESERVATIONS</h2>
-    {% else %}
-         <h2>YOUR RESERVATIONS</h2>
-    {% endif %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th class="col-xs-3">RESOURCE NAME</th>
-                <th class="col-xs-3">START TIME</th>
-                <th class="col-xs-3">DURATION (IN MINUTES)</th>
-                {% if userPage == "no" %}
-                <th class="col-xs-3">DELETE</th>
-                {% endif %}
-            </tr>
-        </thead>
-        {% if reservations %}
-        {% for r in reservations %}
-        <tbody>
-            <tr>
-                <td><a href="/resource?val={{r.resourceId}}">{{r.resourceName}}</a></td>
-                <td>{{r.date}}, {{r.strignStart}}</td>
-                <td>{{r.duration}}</td>
-                
-                    {% if userPage == "no" %}
-                    <td>
-                    <form class="form-horizontal" id = "deleteResource" role="form" action="/deleteReservation?val={{r.uid}}" method="post">
-                            <input type="hidden" value = "{{r.resourceId}}" id = "resourceId" name = "resourceId">
-                            <input class="btn btn-default btn-xs" id="deleteReservation" value="Delete" type="submit">
-                        </form>
-                    </td>
-                    {% endif %}
-                
-            </tr>
-        </tbody>
-        {% endfor %}
-      {% endif %}
-    </table>
-    </div>
-</div>
-    {% if userPage == "no" %}
-    <div id="allResources" class="container-fluid">
-        <div class="container">
-        <h2>ALL RESOURCES</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th class="col-xs-3">RESOURCE NAME</th>
-                    <th class="col-xs-3">AVAILABILITY</th>
-                    <th class="col-xs-3">CAPACITY</th>
-                    <th class="col-xs-3">TAGS</th>
-                </tr>
-            </thead>
-            {% if resources %}
-            {% for r in resources %}
-            <tbody>
-                <tr>
-                    <td>
-                        {% if r.image %}
-                            <a href="/resource?val={{r.id}}">{{r.name}}</a> <a href="/img?imgId={{r.imageId}}"><img src = "/smallImage?imgId={{r.imageId}}"></a> <a href="rssfeed?val={{r.id}}"><img src = "/img/icon-rss.gif"></a>
-                        {% else %}
-                            <a href="/resource?val={{r.id}}">{{r.name}}</a> <a href="rssfeed?val={{r.id}}"><img src = "/img/icon-rss.gif"></a>
-                        {% endif %}
-                    
-                </td>
-                    <td>{{r.dateString}}, {{r.startString}} - {{r.endString}}</td>
-                    <td>{{r.capacity}}</td>
-                    <td>
-                        {% for t in r.tags %}
-                            <a href="/tag?val={{t}}">{{t}}</a>
-                        {%endfor%}
-                    </td>
-                </tr>
-            </tbody>
-            {% endfor %}
-          {% endif %}
-        </table>
-        </div> 
-</div>        
-    {% endif %}
-
- <div id="userResources" class="container-fluid">   
-    <div class="container">
-    {% if userPage == "yes" %}
-        <h2>USER'S RESOURCES</h2>
-    {% else %}
-         <h2>YOUR RESOURCES</h2>
-    {% endif %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th class="col-xs-3">RESOURCE NAME</th>
-                <th class="col-xs-3">AVAILABILITY</th>
-                <th class="col-xs-3">CAPACITY</th>
-                <th class="col-xs-3">TAGS</th>
-            </tr>
-        </thead>
-        {% if userresources %}
-        {% for r in userresources %}
-        <tbody>
-            <tr>
-                <td>
-                   {% if r.image %}
-                      <a href="/resource?val={{r.id}}">{{r.name}}</a> <a href="/img?imgId={{r.imageId}}"><img src = "/smallImage?imgId={{r.imageId}}"></a> <a href="rssfeed?val={{r.id}}"><img src = "/img/icon-rss.gif"></a>
-                   {% else %}
-                        <a href="/resource?val={{r.id}}">{{r.name}}</a> <a href="rssfeed?val={{r.id}}"><img src = "/img/icon-rss.gif"></a>
-                   {% endif %}
-                    
-                </td>
-                <td>{{r.dateString}}, {{r.startString}} - {{r.endString}}</td>
-                <td>{{r.capacity}}</td>
-                <td>
-                    {% for t in r.tags %}
-                        <a href="/tag?val={{t}}">{{t}}</a>
-                    {%endfor%}
-                </td>
-            </tr>
-        </tbody>
-        {% endfor %}
-      {% endif %}
-    </table>
-    </div>
     </div>
   </body>
 </html>

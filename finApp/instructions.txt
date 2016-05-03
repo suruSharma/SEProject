@@ -1,3 +1,3 @@
-dev_appserver.py E:\NYU\SE_Project\finApp
+dev_appserver.py finApp/
 
 appcfg.py -A toalmoal update finApp/

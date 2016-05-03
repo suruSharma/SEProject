@@ -18,6 +18,42 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
+def userProfile_key(email):
+    return ndb.Key('UserProfile', email)
+    
+class UserProfile(ndb.Model):
+    email = ndb.StringProperty(indexed=True, required=True)
+    name = ndb.StringProperty()
+    designation = ndb.StringProperty()
+    salary = ndb.IntegerProperty()
+    currency = ndb.StringProperty()
+   
+class AddUpdateProfile(webapp2.RequestHandler):
+    def post(self):
+        #This will be used to add/update profile in a datastore. Will be called when the user clicks on submit button on the Profile Page
+        template = JINJA_ENVIRONMENT.get_template('profile.html')
+        error = None
+        name = self.request.get('name')
+        designation = self.request.get('designation')
+        salary = self.request.get('salary')
+        currency = self.request.get('currency')
+        logging.info("Name = "+name)
+        logging.info("Designation = "+designation)
+        logging.info("Salary = "+salary)
+        logging.info("Currecny = "+currency)
+        
+        profile = UserProfile(parent=userProfile_key(users.get_current_user().email()))
+        profile.name = name
+        profile.designation = designation
+        profile.salary = int(salary)
+        profile.currency = currency
+        profile.email = str(users.get_current_user().email())
+        
+        profile.put()
+        
+        #Go back to main page. TODO : Change this to update 
+        self.redirect('/profile')
+    
 class Profile(webapp2.RequestHandler):
 
     def get(self):
@@ -30,8 +66,6 @@ class Profile(webapp2.RequestHandler):
             template_values = {
             'user': user.nickname(),
             'url': url,
-            'userPage' : "no",
-            'url_linktext': url_linktext,
             }
             template = JINJA_ENVIRONMENT.get_template('profile.html')
             self.response.write(template.render(template_values))
@@ -71,5 +105,6 @@ class MainPage(webapp2.RequestHandler):
             
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/profile', Profile)
+    ('/profile', Profile),
+    ('/addProfile', AddUpdateProfile)
 ], debug=True)

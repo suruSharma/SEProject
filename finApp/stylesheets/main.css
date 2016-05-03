@@ -140,6 +140,7 @@ h4 {
 }
 
 .profileForm{
+    background : red;
     display:flex;
     color: #fff;
     font-family: Tahoma, Verdana, Segoe, sans-serif;

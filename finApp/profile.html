@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+    <title>ToalMoal</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">  
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>  
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+  </head>
+  <body>
+  <nav class="navbar navbar-right">
+  <div class="container">
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href='/'>HOME</a></li>
+        <div class="dropdown">
+            <button class="dropbtn">OPTIONS</button>
+            <div class="dropdown-content">
+                <a href="{{ url|safe }}">{{ url_linktext }}</a>
+                <a href="#">Profile</a>
+                <a href="#">Create household</a>
+            </div>
+        </div>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="jumbotron text-center">
+    <h1>Profile page</h1>
+</div>
+<div class="container">
+    <div id="leftcolumn">
+        Left
+    </div>
+    <div id="rightcolumn">
+        Right
+    </div>
+</div>
+</body>
+</html>
+{% endautoescape %}

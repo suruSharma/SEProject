@@ -17,7 +17,11 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
-
+    
+def getProfileInformation(email):
+    profileInfo = UserProfile.query(UserProfile.email == email).fetch()
+    return profileInfo  
+    
 def userProfile_key(email):
     return ndb.Key('UserProfile', email)
     
@@ -48,25 +52,41 @@ class AddUpdateProfile(webapp2.RequestHandler):
         profile.salary = int(salary)
         profile.currency = currency
         profile.email = str(users.get_current_user().email())
-        
         profile.put()
         
         #Go back to main page. TODO : Change this to update 
-        self.redirect('/profile')
+        self.redirect('/')
     
 class Profile(webapp2.RequestHandler):
 
     def get(self):
         logging.info("Inside Profile Page")
         user = users.get_current_user()
+        
         if user:
-            logging.info("Found a user inside MainPage")
+            profileInfo = getProfileInformation(user.email())
+            logging.info("Found a user inside Profile Page")
             url = users.create_logout_url(self.request.uri)
-            url_linktext = 'SIGN OUT'
-            template_values = {
-            'user': user.nickname(),
-            'url': url,
-            }
+            if profileInfo is None:
+                logging.info("Email = "+user.email())
+                logging.info("Profile Info not found")
+                template_values = {
+                'user': user.nickname(),
+                'url': url
+                }
+            else:
+                logging.info("Profile Info found")
+                template_values = {
+                'user': user.nickname(),
+                'url': url,
+                'name' : profileInfo[0].name,
+                'designation' : profileInfo[0].designation,
+                'salary' : profileInfo[0].salary,
+                'currency' : profileInfo[0].currency
+                }
+                
+                
+            template_values = template_values
             template = JINJA_ENVIRONMENT.get_template('profile.html')
             self.response.write(template.render(template_values))
         else:

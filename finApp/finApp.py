@@ -18,12 +18,12 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
     
-def getProfileInformation(email):
-    profileInfo = UserProfile.query(UserProfile.email == email).fetch()
+def getProfileInformation(userId):
+    profileInfo = UserProfile.query(UserProfile.userId == userId).fetch()
     return profileInfo  
     
-def userProfile_key(email):
-    return ndb.Key('UserProfile', email)
+def userProfile_key(userId):
+    return ndb.Key('UserProfile', userId)
     
 class UserProfile(ndb.Model):
     email = ndb.StringProperty(indexed=True, required=True)
@@ -31,22 +31,34 @@ class UserProfile(ndb.Model):
     designation = ndb.StringProperty()
     salary = ndb.IntegerProperty()
     currency = ndb.StringProperty()
-   
+    userId = ndb.StringProperty(indexed=True, required=True)
+
+def encode(s):
+    return abs(hash(s)) % (10 ** 8)
+    
 class AddUpdateProfile(webapp2.RequestHandler):
     def post(self):
         #This will be used to add/update profile in a datastore. Will be called when the user clicks on submit button on the Profile Page
         template = JINJA_ENVIRONMENT.get_template('profile.html')
         error = None
+        user = users.get_current_user()
+        userCode = encode(user.email())
+        
         name = self.request.get('name')
         designation = self.request.get('designation')
         salary = self.request.get('salary')
         currency = self.request.get('currency')
+        id = self.request.get('id')
+        
         logging.info("Name = "+name)
         logging.info("Designation = "+designation)
         logging.info("Salary = "+salary)
-        logging.info("Currecny = "+currency)
+        logging.info("Currency = "+currency)
         
-        profile = UserProfile(parent=userProfile_key(users.get_current_user().email()))
+        profile = UserProfile(parent=userProfile_key(userCode))
+        logging.info("Profile ID = "+profile.id)
+        profile.id = id
+        profile.userId = str(userCode)
         profile.name = name
         profile.designation = designation
         profile.salary = int(salary)
@@ -55,7 +67,7 @@ class AddUpdateProfile(webapp2.RequestHandler):
         profile.put()
         
         #Go back to main page. TODO : Change this to update 
-        self.redirect('/')
+        self.redirect('/profile')
     
 class Profile(webapp2.RequestHandler):
 
@@ -64,10 +76,11 @@ class Profile(webapp2.RequestHandler):
         user = users.get_current_user()
         
         if user:
-            profileInfo = getProfileInformation(user.email())
+            userCode = encode(user.email())
+            profileInfo = getProfileInformation(str(userCode))
             logging.info("Found a user inside Profile Page")
             url = users.create_logout_url(self.request.uri)
-            if profileInfo is None:
+            if profileInfo is None or not profileInfo:
                 logging.info("Email = "+user.email())
                 logging.info("Profile Info not found")
                 template_values = {

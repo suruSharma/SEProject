@@ -68,15 +68,15 @@
             <input type="text" class="form-control" name = "salary" id="salary" placeholder="00000" value="{{salary}}">
             </div>
             <div class="col-sm-3">
-                {% if currency == "USD" %}
+                {% if currency == "INR" %}
                     <select class="form-control" id="currency" name="currency" value="{{currency}}">
-                      <option>USD</option>
                       <option>INR</option>
+                      <option>USD</option>
                     </select>
                 {% else %}
                     <select class="form-control" id="currency" name="currency" value="{{currency}}">
-                      <option>INR</option>
                       <option>USD</option>
+                      <option>INR</option>
                     </select>
                 {% endif %}
             </div>

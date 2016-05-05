@@ -68,10 +68,17 @@
             <input type="text" class="form-control" name = "salary" id="salary" placeholder="00000" value="{{salary}}">
             </div>
             <div class="col-sm-3">
-                <select class="form-control" id="currency" name="currency" value="{{currency}}">
-                  <option>USD</option>
-                  <option>INR</option>
-                </select>
+                {% if currency == "USD" %}
+                    <select class="form-control" id="currency" name="currency" value="{{currency}}">
+                      <option>USD</option>
+                      <option>INR</option>
+                    </select>
+                {% else %}
+                    <select class="form-control" id="currency" name="currency" value="{{currency}}">
+                      <option>INR</option>
+                      <option>USD</option>
+                    </select>
+                {% endif %}
             </div>
         </div>
         <div class="form-group row">
@@ -85,25 +92,21 @@
   <table class="table table-striped" id="householdTable">
     <thead>
       <tr>
-        <th class="col-md-2">Household name</th>
-        <th class="col-md-2">Member since</th>
-        <th class="col-md-2">Members</th>
+        <th class="col-md-4">Household name</th>
+        <th class="col-md-8">Members</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>John</td>
-        <td>Doe</td>
         <td>Suru, Saurabh</td>
       </tr>
       <tr>
         <td>Mary</td>
-        <td>Moe</td>
         <td>mary@example.com</td>
       </tr>
       <tr>
         <td>July</td>
-        <td>Dooley</td>
         <td>july@example.com</td>
       </tr>
     </tbody>

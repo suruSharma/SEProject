@@ -32,6 +32,7 @@ class UserProfile(ndb.Model):
     designation = ndb.StringProperty()
     salary = ndb.IntegerProperty()
     currency = ndb.StringProperty()
+    nickName = ndb.StringProperty()
     
 def encode(s):
     return abs(hash(s)) % (10 ** 8)
@@ -50,6 +51,7 @@ class UpdateProfile(webapp2.RequestHandler):
         salary = self.request.get('salary')
         currency = self.request.get('currency')
         userId = self.request.get('userId')
+        nickName  =self.request.get('nickName')
         
         logging.info("Name = "+name)
         logging.info("Designation = "+designation)
@@ -59,6 +61,7 @@ class UpdateProfile(webapp2.RequestHandler):
         
         profile = getProfileInformation(int(userId))
         profile[0].userId = int(userId)
+        profile[0].nickName = nickName
         profile[0].name = name
         profile[0].designation = designation
         profile[0].salary = int(salary)
@@ -81,6 +84,7 @@ class SaveProfile(webapp2.RequestHandler):
         salary = self.request.get('salary')
         currency = self.request.get('currency')
         userId = self.request.get('userId')
+        nickName = self.request.get('nickName')
         
         logging.info("Name = "+name)
         logging.info("Designation = "+designation)
@@ -90,6 +94,7 @@ class SaveProfile(webapp2.RequestHandler):
         
         profile = UserProfile(parent=profile_key(int(userId)))
         profile.userId = int(userId)
+        profile.nickName = nickName
         profile.name = name
         profile.designation = designation
         profile.salary = int(salary)
@@ -134,7 +139,8 @@ class LoadProfile(webapp2.RequestHandler):
                 'email' : profileInfo[0].email,
                 'userId' : userCode,
                 'button' : 'UPDATE',
-                'action' : 'updateProfile'
+                'action' : 'updateProfile',
+                'nickName' : profileInfo[0].nickName
                 }
                 
             template_values = template_values

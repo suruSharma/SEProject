@@ -35,12 +35,19 @@
         <h1>Account Details</h1>
 </div>
 <div class="container">
+    <h2>Personal Details </h2>
     <form class="form-horizontal" id = "userProfileForm" role="form" action="/{{action}}" method="post"> 
         <input type="hidden" class="form-control" name = "userId" id="userId" value="{{userId}}">
         <div class="form-group row">
             <label for="name" class="col-sm-3 form-control-label">Name</label>
             <div class="col-sm-9">
             <input type="text" class="form-control" name = "name" id="name" placeholder="Name" value="{{name}}">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="nickName" class="col-sm-3 form-control-label">Nick Name</label>
+            <div class="col-sm-9">
+            <input type="text" class="form-control" name = "nickName" id="nickName" placeholder="Nick Name(upto 5 characters)" value="{{nickName}}">
             </div>
         </div>
         <div class="form-group row">
@@ -73,6 +80,34 @@
             </div>
         </div>
     </form>
+    <hr style="width: 100%; color: black; height: 1px; background-color:black;" />
+    <h2>Household information</h2>           
+  <table class="table table-striped" id="householdTable">
+    <thead>
+      <tr>
+        <th class="col-md-2">Household name</th>
+        <th class="col-md-2">Member since</th>
+        <th class="col-md-2">Members</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>John</td>
+        <td>Doe</td>
+        <td>Suru, Saurabh</td>
+      </tr>
+      <tr>
+        <td>Mary</td>
+        <td>Moe</td>
+        <td>mary@example.com</td>
+      </tr>
+      <tr>
+        <td>July</td>
+        <td>Dooley</td>
+        <td>july@example.com</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 </div>
 </body>        

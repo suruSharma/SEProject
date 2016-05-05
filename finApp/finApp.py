@@ -22,43 +22,74 @@ def getProfileInformation(userId):
     profileInfo = UserProfile.query(UserProfile.userId == userId).fetch()
     return profileInfo  
     
-def userProfile_key(userId):
-    return ndb.Key('UserProfile', userId)
+def profile_key(userId):
+    return ndb.Key('Profile', userId)   
     
 class UserProfile(ndb.Model):
-    email = ndb.StringProperty(indexed=True, required=True)
+    userId = ndb.IntegerProperty(indexed=True, required=True)
+    email = ndb.StringProperty(required=True)
     name = ndb.StringProperty()
     designation = ndb.StringProperty()
     salary = ndb.IntegerProperty()
     currency = ndb.StringProperty()
-    userId = ndb.StringProperty(indexed=True, required=True)
-
+    
 def encode(s):
     return abs(hash(s)) % (10 ** 8)
-    
-class AddUpdateProfile(webapp2.RequestHandler):
+
+class UpdateProfile(webapp2.RequestHandler):
+    def get(self):
+        logging.info("Inside get of Updateprofile")
     def post(self):
-        #This will be used to add/update profile in a datastore. Will be called when the user clicks on submit button on the Profile Page
+        logging.info("Inside update profile")
         template = JINJA_ENVIRONMENT.get_template('profile.html')
         error = None
         user = users.get_current_user()
-        userCode = encode(user.email())
         
         name = self.request.get('name')
         designation = self.request.get('designation')
         salary = self.request.get('salary')
         currency = self.request.get('currency')
-        id = self.request.get('id')
+        userId = self.request.get('userId')
         
         logging.info("Name = "+name)
         logging.info("Designation = "+designation)
         logging.info("Salary = "+salary)
         logging.info("Currency = "+currency)
+        logging.info("UserId = "+userId)
         
-        profile = UserProfile(parent=userProfile_key(userCode))
-        logging.info("Profile ID = "+profile.id)
-        profile.id = id
-        profile.userId = str(userCode)
+        profile = getProfileInformation(int(userId))
+        profile[0].userId = int(userId)
+        profile[0].name = name
+        profile[0].designation = designation
+        profile[0].salary = int(salary)
+        profile[0].currency = currency
+        profile[0].email = str(users.get_current_user().email())
+        profile[0].put()
+        
+        #Go back to main page. TODO : Change this to update 
+        self.redirect('/')
+    
+class SaveProfile(webapp2.RequestHandler):
+    def post(self):
+        #This will be used to add/update profile in a datastore. Will be called when the user clicks on submit button on the Profile Page
+        template = JINJA_ENVIRONMENT.get_template('profile.html')
+        error = None
+        user = users.get_current_user()
+        
+        name = self.request.get('name')
+        designation = self.request.get('designation')
+        salary = self.request.get('salary')
+        currency = self.request.get('currency')
+        userId = self.request.get('userId')
+        
+        logging.info("Name = "+name)
+        logging.info("Designation = "+designation)
+        logging.info("Salary = "+salary)
+        logging.info("Currency = "+currency)
+        logging.info("UserId = "+userId)
+        
+        profile = UserProfile(parent=profile_key(int(userId)))
+        profile.userId = int(userId)
         profile.name = name
         profile.designation = designation
         profile.salary = int(salary)
@@ -67,25 +98,29 @@ class AddUpdateProfile(webapp2.RequestHandler):
         profile.put()
         
         #Go back to main page. TODO : Change this to update 
-        self.redirect('/profile')
+        self.redirect('/')
     
-class Profile(webapp2.RequestHandler):
-
+class LoadProfile(webapp2.RequestHandler):
     def get(self):
         logging.info("Inside Profile Page")
         user = users.get_current_user()
         
         if user:
             userCode = encode(user.email())
-            profileInfo = getProfileInformation(str(userCode))
+            profileInfo = getProfileInformation(userCode)
             logging.info("Found a user inside Profile Page")
             url = users.create_logout_url(self.request.uri)
             if profileInfo is None or not profileInfo:
+                #The user is not present in the system yet
                 logging.info("Email = "+user.email())
                 logging.info("Profile Info not found")
                 template_values = {
                 'user': user.nickname(),
-                'url': url
+                'url': url,
+                'email' : user.email(),
+                'userId' : userCode,
+                'button' : 'SAVE',
+                'action' : 'saveProfile'
                 }
             else:
                 logging.info("Profile Info found")
@@ -95,9 +130,12 @@ class Profile(webapp2.RequestHandler):
                 'name' : profileInfo[0].name,
                 'designation' : profileInfo[0].designation,
                 'salary' : profileInfo[0].salary,
-                'currency' : profileInfo[0].currency
+                'currency' : profileInfo[0].currency,
+                'email' : profileInfo[0].email,
+                'userId' : userCode,
+                'button' : 'UPDATE',
+                'action' : 'updateProfile'
                 }
-                
                 
             template_values = template_values
             template = JINJA_ENVIRONMENT.get_template('profile.html')
@@ -138,6 +176,7 @@ class MainPage(webapp2.RequestHandler):
             
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/profile', Profile),
-    ('/addProfile', AddUpdateProfile)
+    ('/loadProfile', LoadProfile),
+    ('/saveProfile', SaveProfile),
+    ('/updateProfile', UpdateProfile)
 ], debug=True)

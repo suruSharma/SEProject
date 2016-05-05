@@ -35,11 +35,18 @@
         <h1>Account Details</h1>
 </div>
 <div class="container">
-    <form class="form-horizontal" id = "userProfileForm" role="form" action="/addProfile" method="post">   
+    <form class="form-horizontal" id = "userProfileForm" role="form" action="/{{action}}" method="post"> 
+        <input type="hidden" class="form-control" name = "userId" id="userId" value="{{userId}}">
         <div class="form-group row">
             <label for="name" class="col-sm-3 form-control-label">Name</label>
             <div class="col-sm-9">
             <input type="text" class="form-control" name = "name" id="name" placeholder="Name" value="{{name}}">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="email" class="col-sm-3 form-control-label">Email</label>
+            <div class="col-sm-9">
+            <input type="text" class="form-control" name = "email" id="email" placeholder="email" value="{{email}}" readonly>
             </div>
         </div>
         <div class="form-group row">
@@ -62,7 +69,7 @@
         </div>
         <div class="form-group row">
             <div class="col-sm-offset-5 col-sm-10">
-                <button type="submit" class="btn btn-secondary">Update</button>
+                <button type="submit" class="btn btn-secondary">{{button}}</button>
             </div>
         </div>
     </form>

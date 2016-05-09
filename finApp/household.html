@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+    <head>
+        <title>Create Household</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=2048">
+
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" rel="stylesheet" href="/stylesheets/main.css" />
+        <script src="/js/app.js"></script>
+        <style>
+            input[type="checkbox"]{
+            margin-left: 50;
+            line-height: normal;
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-right">
+            <div class="container">
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href='/'>HOME</a></li>
+                        <div class="dropdown">
+                            <button class="dropbtn">OPTIONS</button>
+                            <div class="dropdown-content">
+                                <a href="/loadProfile">PROFILE</a>
+                                <a href="{{ url|safe }}">LOGOUT</a>
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="jumbotron text-center">
+            <h1>Household Details</h1>
+        </div>
+        <div class="container">
+            <form class="form-horizontal" id = "householdForm" role="form" action="/addHousehold" method="post">
+                <input type="hidden" class="form-control" name = "count" id="count" value=0>
+                <div class="form-group">
+                    <label for="nickName" class="col-sm-3 form-control-label">Household Name</label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="householdName" id="householdName" placeholder="Enter a name for the household" value="{{householdName}}">
+                    </div>
+                </div>
+                <hr style="width: 100%; color: black; height: 2px; background-color:grey;" />
+                <label for="nickName" class="col-sm-3 form-control-label">ADD MEMBERS</label>
+                <div>
+                    <table class="table table-striped table-hover col-md-12" id="householdTable" name="householdTable">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center col-md-5">Name</th>
+                                <th class="text-center col-md-4">Email</th>
+                                <th class="text-center col-md-1">Earning?</th>
+                                <th class="text-center col-md-1"></th>
+                                <th class="text-center col-md-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id='addr0'>
+                                <td>1</td>                        
+                                <td><input type="text" name='name0'  placeholder='Name' class="form-control"/></td>
+                                <td>
+                                    <div id="emailColumn">
+                                        <input type="text" name='email0'  placeholder='Username' class="form-control col-md-2" style="width: 50%;"/><input type="text" class="form-control col-md-2" placeholder="email" value="@gmail.com" readonly style="width: 50%;">
+                                    </div>
+                                </td>
+                                <td class="vcenter"><input type="checkbox" id="earning0" name="earning0"/></td>
+                                <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
+                                <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
+                            </tr>
+                            <tr id='addr1'></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="form-group row">
+                    <div class="col-sm-offset-5 col-sm-10">
+                        <button type="submit" class="btn btn-primary">SAVE</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <script>
+        $(document).ready(function(){
+        var i=1;
+        $("#add_row").click(function(){
+        $('#addr'+i).html("");
+
+        $('#householdTable').append('<tr id="addr'+(i+1)+'"></tr>');
+        i++; 
+        document.getElementById("count").value = i;
+        });
+        $("table#householdTable").on("click", ".remove", function () {
+        if(i > 1){
+            $(this).closest('tr').remove();
+            i--;
+            document.getElementById("count").value = i;
+        }
+        });
+        $("table#householdTable").on("click", ".add", function () {
+            $('#addr'+i).html("<td>"+(i+1)+"</td>"+                        
+                              "<td><input type='text' name='name"+(i)+"' placeholder='Name' class='form-control'/></td>"+
+                              "<td>"+
+                                    "<div id='emailColumn'>"+
+                                        "<input type='text' name='email"+(i)+"'  placeholder='Username' class='form-control col-md-2' style='width: 50%;'/>"+
+                                        "<input type='text' class='form-control col-md-2' value='@gmail.com' readonly style='width: 50%;'>"+
+                                    "</div>"+
+                                "</td>"+
+                                "<td class='vcenter'><input type='checkbox' id='earning"+(i)+"' name='earning"+(i)+"'/></td>"+
+                                "<td><span class='glyphicon glyphicon glyphicon-remove-sign remove'></span></td>"+
+                                "<td><span class='glyphicon glyphicon glyphicon-plus-sign add'></span></td>");
+            
+            $('#householdTable').append('<tr id="addr'+(i+1)+'"></tr>');
+            i++; 
+            document.getElementById("count").value = i;
+        });
+        });
+        </script>
+    </body>        
+</html>
+{% endautoescape %}

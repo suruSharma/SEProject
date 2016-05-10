@@ -35,7 +35,7 @@ class Household(ndb.Model):
     
 class HouseholdMembers(ndb.Model):
     householdId = ndb.StringProperty(indexed=True, required=True)
-    members = ndb.StringProperty()
+    members = ndb.IntegerProperty()
     
 class UserProfile(ndb.Model):
     userId = ndb.IntegerProperty(indexed=True, required=True)
@@ -47,6 +47,7 @@ class UserProfile(ndb.Model):
     nickName = ndb.StringProperty()
     company = ndb.StringProperty()
     households = ndb.StringProperty(repeated=True)
+    isEarning = ndb.BooleanProperty()
     
 def encode(s):
     return abs(hash(s)) % (10 ** 8)
@@ -57,8 +58,10 @@ class AddHousehold(webapp2.RequestHandler):
     def post(self):
         template = JINJA_ENVIRONMENT.get_template('household.html')
         householdName = self.request.get('householdName')
+        user = users.get_current_user()
         householdId = addHousehold(householdName)
-        memberCount = self.request.get('count')
+        count = self.request.get('count')
+        memberCount = int(count)+1 if int(count) == 0 else int(count)
         for i in range(0, int(memberCount)):
             memberName = self.request.get('name'+str(i))
             memberUsername = self.request.get('email'+str(i))
@@ -68,9 +71,31 @@ class AddHousehold(webapp2.RequestHandler):
             else:
                 isEarning = "yes"
             
-            
+            profileId = addProfileToDS(memberName, memberUsername+"@gmail.com", isEarning,householdName, user.email())
                 
-        
+            
+def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
+    userCode = encode(emailId)
+    profile = getProfileInformation(int(userCode))
+    if(profile is None or not profile):
+        logging.info("Profile created for "+emailId)
+        profile = UserProfile(parent=profile_key(int(userCode)))
+        profile.userId = int(userCode)
+        profile.name = name
+        profile.email = str(emailId)
+        profile.isEarning = True if isEarning == "yes" else False
+        profile.put()
+    sendMailToMember(name, emailId, householdName, userEmail)
+    return userCode
+
+def sendMailToMember(name, emailId, householdName, userEmail):
+    mail.send_mail(sender="sss665@nyu.edu",
+                    to=emailId,
+                    subject="You have been added to household : "+householdName,
+                    body = """Hi """+name+"""
+                        You have been added to """+householdName+""" by """+userEmail+""". Please click on http://toalmoal.appspot.com/loadProfile to update your profile""")  
+
+#TODO : Check for existing household name                        
 def addHousehold(householdName):
     householdId = str(uuid.uuid4())
     household = Household(parent=household_key(householdId))
@@ -91,7 +116,7 @@ class UpdateProfile(webapp2.RequestHandler):
         
         name = self.request.get('name')
         designation = self.request.get('designation')
-        salary = self.request.get('salary')
+        salary = int(self.request.get('salary'))
         currency = self.request.get('currency')
         userId = self.request.get('userId')
         nickName  =self.request.get('nickName')
@@ -102,10 +127,11 @@ class UpdateProfile(webapp2.RequestHandler):
         profile[0].nickName = nickName
         profile[0].name = name
         profile[0].designation = designation
-        profile[0].salary = int(salary)
+        profile[0].salary = salary
         profile[0].currency = currency
         profile[0].email = str(users.get_current_user().email())
         profile[0].company = company
+        profile[0].isEarning = True if salary > 0 else False
         profile[0].put()
         
         #Go back to main page. TODO : Change this to update 
@@ -121,7 +147,7 @@ class SaveProfile(webapp2.RequestHandler):
         
         name = self.request.get('name')
         designation = self.request.get('designation')
-        salary = self.request.get('salary')
+        salary = int(self.request.get('salary'))
         currency = self.request.get('currency')
         userId = self.request.get('userId')
         nickName = self.request.get('nickName')
@@ -132,10 +158,11 @@ class SaveProfile(webapp2.RequestHandler):
         profile.nickName = nickName
         profile.name = name
         profile.designation = designation
-        profile.salary = int(salary)
+        profile.salary = salary
         profile.currency = currency
         profile.email = str(users.get_current_user().email())
         profile.company = company
+        profile.isEarning = True if salary > 0 else False
         profile.put()
         
         #Go back to main page. TODO : Change this to update 
@@ -170,7 +197,7 @@ class LoadProfile(webapp2.RequestHandler):
                 'salary' : profileInfo[0].salary,
                 'currency' : profileInfo[0].currency,
                 'email' : profileInfo[0].email,
-                'userId' : userCode,
+                'userId' : profileInfo[0].userId,
                 'button' : 'UPDATE',
                 'action' : 'updateProfile',
                 'nickName' : profileInfo[0].nickName,

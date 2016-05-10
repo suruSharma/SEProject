@@ -18,24 +18,32 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
-    
+DEFAULT_KEY = "default_key"   
 def getProfileInformation(userId):
-    profileInfo = UserProfile.query(UserProfile.userId == userId).fetch()
-    return profileInfo  
+    return UserProfile.query(UserProfile.userId == userId).fetch()
     
 def profile_key(userId):
     return ndb.Key('Profile', userId)
 
 def household_key(householdId):
     return ndb.Key('Household', householdId)
-
+    
+def householdMembers_key():
+    return ndb.Key('HouseholdMembers', DEFAULT_KEY)
+    
+def getHouseholdMemberCombo(householdId, profileId):
+    return HouseholdMembers.query(HouseholdMembers.householdId == householdId and HouseholdMembers.member == profileId).fetch()
+    
+def getHousehold(householdId):
+    return Household.query(Household.householdId == householdId).fetch()
+    
 class Household(ndb.Model):
-    householdId = ndb.StringProperty(indexed=True, required=True)
+    householdId = ndb.IntegerProperty(indexed=True, required=True)
     householdName = ndb.StringProperty()
     
 class HouseholdMembers(ndb.Model):
-    householdId = ndb.StringProperty(indexed=True, required=True)
-    members = ndb.IntegerProperty()
+    householdId = ndb.IntegerProperty(indexed=True, required=True)
+    member = ndb.IntegerProperty()
     
 class UserProfile(ndb.Model):
     userId = ndb.IntegerProperty(indexed=True, required=True)
@@ -58,10 +66,11 @@ class AddHousehold(webapp2.RequestHandler):
     def post(self):
         template = JINJA_ENVIRONMENT.get_template('household.html')
         householdName = self.request.get('householdName')
-        user = users.get_current_user()
+        user = users.get_current_user().email()
         householdId = addHousehold(householdName)
         count = self.request.get('count')
         memberCount = int(count)+1 if int(count) == 0 else int(count)
+        profileIdList = []
         for i in range(0, int(memberCount)):
             memberName = self.request.get('name'+str(i))
             memberUsername = self.request.get('email'+str(i))
@@ -71,14 +80,30 @@ class AddHousehold(webapp2.RequestHandler):
             else:
                 isEarning = "yes"
             
-            profileId = addProfileToDS(memberName, memberUsername+"@gmail.com", isEarning,householdName, user.email())
-                
+            profileId = addProfileToDS(memberName, memberUsername+"@gmail.com", isEarning,householdName, user)
+            profileIdList.append(profileId)
             
+        addProfileToDS("", user, "no", householdName, user)#This is to add user to profile table, if he doesn't exist
+        profileIdList.append(int(encode(user)))
+        addHouseholdMembers(profileIdList, householdId)
+        
+        time.sleep(2)
+        self.redirect('/loadProfile')
+        
+def addHouseholdMembers(profileIdList, householdId):
+    #Check for combination of 
+    for profile in profileIdList:
+        householdMemberCombo = getHouseholdMemberCombo(householdId, profile)
+        if(householdMemberCombo is None or not householdMemberCombo):
+            householdMemberCombo = HouseholdMembers(parent=householdMembers_key())
+            householdMemberCombo.householdId = householdId
+            householdMemberCombo.member = profile
+            householdMemberCombo.put()
+        
 def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
     userCode = encode(emailId)
     profile = getProfileInformation(int(userCode))
     if(profile is None or not profile):
-        logging.info("Profile created for "+emailId)
         profile = UserProfile(parent=profile_key(int(userCode)))
         profile.userId = int(userCode)
         profile.name = name
@@ -89,23 +114,51 @@ def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
     return userCode
 
 def sendMailToMember(name, emailId, householdName, userEmail):
-    mail.send_mail(sender="sss665@nyu.edu",
+    mail.send_mail(sender=userEmail,
                     to=emailId,
                     subject="You have been added to household : "+householdName,
                     body = """Hi """+name+"""
                         You have been added to """+householdName+""" by """+userEmail+""". Please click on http://toalmoal.appspot.com/loadProfile to update your profile""")  
-
-#TODO : Check for existing household name                        
+                       
 def addHousehold(householdName):
-    householdId = str(uuid.uuid4())
-    household = Household(parent=household_key(householdId))
-    household.householdId = householdId
-    household.householdName = householdName
-    
-    household.put()
+    householdId = int(encode(householdName))
+    household = getHousehold(householdId)
+    if(household is None or not household):
+        household = Household(parent=household_key(householdId))
+        household.householdId = householdId
+        household.householdName = householdName
+        household.put()
     
     return householdId
+
+def getHouseholdsListByUserId(userId):
+    households = HouseholdMembers.query(HouseholdMembers.member == userId).fetch()
+    return households
+
+def getHouseholdsListByHouseholdId(householdId):
+    households = HouseholdMembers.query(HouseholdMembers.householdId == householdId).fetch()
+    return households
+
+def getHousehold(hId):
+    household = Household.query(Household.householdId == hId).fetch()
+    return household[0]
+
+#Param houeholds = lis of households a person belongs to    
+def getHouseholdInformation(households):
+    logging.info("Fetching household information")
+    householdTableInfo = []
+    for hh in households:
+        hId = hh.householdId
+        hhInfo = getHousehold(hId)
+        logging.info("Name of household ="+hhInfo.householdName)
+        hh = {
+            'hname' : hhInfo.householdName,
+            'hId' : hhInfo.householdId
+        }
+        householdTableInfo.append(hh)
         
+    return householdTableInfo
+    
 class UpdateProfile(webapp2.RequestHandler):
     def get(self):
         logging.info("Inside get of Updateprofile")
@@ -175,9 +228,12 @@ class LoadProfile(webapp2.RequestHandler):
         
         if user:
             userCode = encode(user.email())
+            households = getHouseholdsListByUserId(int(userCode))#This returns a list of  households a person belongs to
+            householdTableInfo = getHouseholdInformation(households)#This returns a list of data to populate the household table
             profileInfo = getProfileInformation(userCode)
             url = users.create_logout_url(self.request.uri)
             if profileInfo is None or not profileInfo:
+                logging.info(householdTableInfo)
                 #The user is not present in the system yet
                 template_values = {
                 'user': user.nickname(),
@@ -185,10 +241,10 @@ class LoadProfile(webapp2.RequestHandler):
                 'email' : user.email(),
                 'userId' : userCode,
                 'button' : 'SAVE',
-                'action' : 'saveProfile'
+                'action' : 'saveProfile',
+                'hhTable' : householdTableInfo
                 }
             else:
-                logging.info("Profile Info found")
                 template_values = {
                 'user': user.nickname(),
                 'url': url,
@@ -201,8 +257,10 @@ class LoadProfile(webapp2.RequestHandler):
                 'button' : 'UPDATE',
                 'action' : 'updateProfile',
                 'nickName' : profileInfo[0].nickName,
-                'company' : profileInfo[0].company
+                'company' : profileInfo[0].company,
+                'hhTable' : householdTableInfo
                 }
+                logging.info(householdTableInfo)
                 
             template_values = template_values
             template = JINJA_ENVIRONMENT.get_template('profile.html')
@@ -257,15 +315,11 @@ class CreateHousehold(webapp2.RequestHandler):
             }
             template = JINJA_ENVIRONMENT.get_template('landing.html')
             self.response.write(template.render(template_values))
-            
-  
+             
 class MainPage(webapp2.RequestHandler):
-
     def get(self):
-        logging.info("Inside MainPage")
         user = users.get_current_user()
         if user:
-            logging.info("Found a user inside MainPage")
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'SIGN OUT'
             template_values = {
@@ -277,7 +331,6 @@ class MainPage(webapp2.RequestHandler):
             template = JINJA_ENVIRONMENT.get_template('index.html')
             self.response.write(template.render(template_values))
         else:
-            logging.info("User not found. Loading Landing page")
             template_values = {
                 'url' : users.create_login_url(self.request.uri)
             }

@@ -103,18 +103,14 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>John</td>
-        <td>Suru, Saurabh</td>
-      </tr>
-      <tr>
-        <td>Mary</td>
-        <td>mary@example.com</td>
-      </tr>
-      <tr>
-        <td>July</td>
-        <td>july@example.com</td>
-      </tr>
+        {% if hhTable %}
+            {% for h in hhTable %}
+                <tr>
+                    <td><a href="#">{{h.hname}}</a></td>
+                    <td>Salary</td>
+                </tr>
+            {% endfor %}
+        {% endif %}
     </tbody>
   </table>
 </div>

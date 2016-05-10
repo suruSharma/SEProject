@@ -135,25 +135,34 @@ def getHouseholdsListByUserId(userId):
     households = HouseholdMembers.query(HouseholdMembers.member == userId).fetch()
     return households
 
-def getHouseholdsListByHouseholdId(householdId):
-    households = HouseholdMembers.query(HouseholdMembers.householdId == householdId).fetch()
-    return households
+def getHouseholdMembersByHouseholdId(householdId):
+    hhMembers = HouseholdMembers.query(HouseholdMembers.householdId == householdId).fetch()
+    return hhMembers
 
 def getHousehold(hId):
     household = Household.query(Household.householdId == hId).fetch()
     return household[0]
-
+    
+def getAllMembersOfHousehold(hId):
+    hhMembers = getHouseholdMembersByHouseholdId(hId)
+    members = []
+    for hhm in hhMembers:
+        memberProfile = getProfileInformation(hhm.member)[0]
+        members.append(memberProfile.name.split()[0])
+    return members
+    
 #Param houeholds = lis of households a person belongs to    
 def getHouseholdInformation(households):
-    logging.info("Fetching household information")
     householdTableInfo = []
     for hh in households:
         hId = hh.householdId
         hhInfo = getHousehold(hId)
-        logging.info("Name of household ="+hhInfo.householdName)
+        logging.info(hhInfo)
+        members = getAllMembersOfHousehold(hhInfo.householdId)
         hh = {
             'hname' : hhInfo.householdName,
-            'hId' : hhInfo.householdId
+            'hId' : hhInfo.householdId,
+            'members' : ', '.join(members)
         }
         householdTableInfo.append(hh)
         

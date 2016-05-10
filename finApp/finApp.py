@@ -3,6 +3,7 @@ import urllib
 import datetime
 import uuid
 import logging
+import time
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -108,6 +109,7 @@ class UpdateProfile(webapp2.RequestHandler):
         profile[0].put()
         
         #Go back to main page. TODO : Change this to update 
+        time.sleep(3)
         self.redirect('/loadProfile')
     
 class SaveProfile(webapp2.RequestHandler):
@@ -137,6 +139,7 @@ class SaveProfile(webapp2.RequestHandler):
         profile.put()
         
         #Go back to main page. TODO : Change this to update 
+        time.sleep(3)
         self.redirect('/loadProfile')
     
 class LoadProfile(webapp2.RequestHandler):

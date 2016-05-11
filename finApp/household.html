@@ -45,7 +45,7 @@
                 <div class="form-group">
                     <label for="nickName" class="col-sm-3 form-control-label">Household Name</label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" name="householdName" id="householdName" placeholder="Enter a name for the household" value="{{householdName}}">
+                        <input type="text" class="form-control" name="householdName" id="householdName" placeholder="Enter a name for the household" value="{{hhname}}">
                     </div>
                 </div>
                 <hr style="width: 100%; color: black; height: 2px; background-color:grey;" />
@@ -63,19 +63,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr id='addr0'>
-                                <td>1</td>                        
-                                <td><input type="text" name='name0'  placeholder='Name' class="form-control"/></td>
-                                <td>
-                                    <div id="emailColumn">
-                                        <input type="text" name='email0'  placeholder='Username' class="form-control col-md-2" style="width: 50%;"/><input type="text" class="form-control col-md-2" placeholder="email" value="@gmail.com" readonly style="width: 50%;">
-                                    </div>
-                                </td>
-                                <td class="vcenter"><input type="checkbox" id="earning0" name="earning0"/></td>
-                                <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
-                                <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
-                            </tr>
-                            <tr id='addr1'></tr>
+                            {% if members %}
+                                {% for m in members %}
+                                    <tr id='addr{{m.id}}'>
+                                        <td>{{m.id}}</td>
+                                        <td><input type="text" name='name{{m.id}}'  placeholder='Name' class="form-control" value = "{{m.name}}"/></td>
+                                        <td>
+                                            <div id="emailColumn">
+                                                <input type="text" name='email{{m.id}}'  placeholder='Username' class="form-control col-md-2" style="width: 50%;" value="{{m.email}}"/><input type="text" class="form-control col-md-2" value="@gmail.com" readonly style="width: 50%;">
+                                            </div>
+                                        </td>
+                                        <td class="vcenter"><input type="checkbox" id="earning{{m.id}}" name="earning{{m.id}}" {{m.isEarning}}/></td>
+                                        <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
+                                        <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}  
+                            <tr id='addr{{count}}'></tr>
                         </tbody>
                     </table>
                 </div>
@@ -89,7 +93,7 @@
         </div>
         <script>
         $(document).ready(function(){
-        var i=1;
+        var i={{count}};
         $("#add_row").click(function(){
         $('#addr'+i).html("");
 
@@ -105,7 +109,7 @@
         }
         });
         $("table#householdTable").on("click", ".add", function () {
-            $('#addr'+i).html("<td>"+(i+1)+"</td>"+                        
+            $('#addr'+i).html("<td>"+(i)+"</td>"+                        
                               "<td><input type='text' name='name"+(i)+"' placeholder='Name' class='form-control'/></td>"+
                               "<td>"+
                                     "<div id='emailColumn'>"+

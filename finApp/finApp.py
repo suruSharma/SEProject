@@ -69,9 +69,9 @@ class AddHousehold(webapp2.RequestHandler):
         user = users.get_current_user().email()
         householdId = addHousehold(householdName)
         count = self.request.get('count')
-        memberCount = int(count)+1 if int(count) == 0 else int(count)
+        #memberCount = int(count)+1 if int(count) == 0 else int(count)
         profileIdList = []
-        for i in range(0, int(memberCount)):
+        for i in range(1, int(count)+1):
             memberName = self.request.get('name'+str(i))
             memberUsername = self.request.get('email'+str(i))
             isEarning = self.request.get('earning'+str(i))
@@ -141,15 +141,21 @@ def getHouseholdMembersByHouseholdId(householdId):
 
 def getHousehold(hId):
     household = Household.query(Household.householdId == hId).fetch()
-    return household[0]
+    return household
     
 def getAllMembersOfHousehold(hId):
     hhMembers = getHouseholdMembersByHouseholdId(hId)
     members = []
     for hhm in hhMembers:
         memberProfile = getProfileInformation(hhm.member)[0]
-        members.append(memberProfile.name.split()[0])
+        members.append(memberProfile)
     return members
+    
+def getListOfMemberNames(members):
+    names = []
+    for m in members:
+        names.append(m.name.split()[0])
+    return names
     
 #Param houeholds = lis of households a person belongs to    
 def getHouseholdInformation(households):
@@ -158,16 +164,35 @@ def getHouseholdInformation(households):
         hId = hh.householdId
         hhInfo = getHousehold(hId)
         logging.info(hhInfo)
-        members = getAllMembersOfHousehold(hhInfo.householdId)
+        members = getAllMembersOfHousehold(hhInfo[0].householdId)
+        names = getListOfMemberNames(members)
         hh = {
-            'hname' : hhInfo.householdName,
-            'hId' : hhInfo.householdId,
-            'members' : ', '.join(members)
+            'hname' : hhInfo[0].householdName,
+            'hId' : hhInfo[0].householdId,
+            'members' : ', '.join(names)
         }
         householdTableInfo.append(hh)
         
     return householdTableInfo
-    
+
+def createMemberRows(members):
+    memberRows = []
+    i = 1
+    logging.info(members)
+    for m in members:
+        if "@gmail.com" in m.email:
+            memObj = {
+                'name' : m.name,
+                'email' : m.email.split("@gmail.com")[0],
+                'isEarning' : "checked" if m.isEarning == True else "",
+                'id' : i
+            }
+            i = i+1
+            memberRows.append(memObj)
+        
+    logging.info(memberRows)
+    return memberRows
+        
 class UpdateProfile(webapp2.RequestHandler):
     def get(self):
         logging.info("Inside get of Updateprofile")
@@ -287,34 +312,26 @@ class CreateHousehold(webapp2.RequestHandler):
         
         if user:
             userCode = encode(user.email())
-            profileInfo = getProfileInformation(userCode)
             url = users.create_logout_url(self.request.uri)
-            if profileInfo is None or not profileInfo:
-                #The user is not present in the system yet
+            hhId = self.request.get('hid')
+            if(hhId is None or not hhId):
                 template_values = {
-                'user': user.nickname(),
-                'url': url,
-                'email' : user.email(),
-                'userId' : userCode,
-                'button' : 'SAVE',
-                'action' : 'saveProfile'
-                }
+                    'user': user.nickname(),
+                    'url': url
+                    }
             else:
+                logging.info("Load household information")
+                hh = getHousehold(int(hhId))
+                hhMembers = getAllMembersOfHousehold(int(hhId))
+                memberRows = createMemberRows(hhMembers)
                 template_values = {
-                'user': user.nickname(),
-                'url': url,
-                'name' : profileInfo[0].name,
-                'designation' : profileInfo[0].designation,
-                'salary' : profileInfo[0].salary,
-                'currency' : profileInfo[0].currency,
-                'email' : profileInfo[0].email,
-                'userId' : userCode,
-                'button' : 'UPDATE',
-                'action' : 'updateProfile',
-                'nickName' : profileInfo[0].nickName,
-                'company' : profileInfo[0].company
+                    'user': user.nickname(),
+                    'url': url,
+                    'hhname' : hh[0].householdName,
+                    'hhid' : hh[0].householdId,
+                    'members' : memberRows,
+                    'count' : int(len(memberRows))+1
                 }
-                
             template_values = template_values
             template = JINJA_ENVIRONMENT.get_template('household.html')
             self.response.write(template.render(template_values))
@@ -351,6 +368,6 @@ app = webapp2.WSGIApplication([
     ('/loadProfile', LoadProfile),
     ('/saveProfile', SaveProfile),
     ('/updateProfile', UpdateProfile),
-    ('/createHousehold', CreateHousehold),
+    ('/household', CreateHousehold),
     ('/addHousehold', AddHousehold)
 ], debug=True)

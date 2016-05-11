@@ -22,7 +22,7 @@
         <div class="dropdown">
             <button class="dropbtn">OPTIONS</button>
             <div class="dropdown-content">
-                <a href="/createHousehold">Create household</a>
+                <a href="/household">Create household</a>
                 <a href="{{ url|safe }}">LOGOUT</a>
             </div>
         </div>
@@ -106,7 +106,7 @@
         {% if hhTable %}
             {% for h in hhTable %}
                 <tr>
-                    <td><a href="#">{{h.hname}}</a></td>
+                    <td><a href="/household?hid={{h.hId}}">{{h.hname}}</a></td>
                     <td>{{h.members}}</td>
                 </tr>
             {% endfor %}

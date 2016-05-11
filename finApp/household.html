@@ -69,15 +69,24 @@
                                         <td>{{m.id}}</td>
                                         <td><input type="text" name='name{{m.id}}'  placeholder='Name' class="form-control" value = "{{m.name}}"/></td>
                                         <td>
-                                            <div id="emailColumn">
-                                                <input type="text" name='email{{m.id}}'  placeholder='Username' class="form-control col-md-2" style="width: 50%;" value="{{m.email}}"/><input type="text" class="form-control col-md-2" value="@gmail.com" readonly style="width: 50%;">
-                                            </div>
+                                            <input type="text" name='email{{m.id}}'  placeholder='Username' class="form-control col-md-2" value="{{m.email}}"/>
                                         </td>
                                         <td class="vcenter"><input type="checkbox" id="earning{{m.id}}" name="earning{{m.id}}" {{m.isEarning}}/></td>
                                         <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
                                         <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
                                     </tr>
                                 {% endfor %}
+                            {% else %}
+                                <tr id='addr1'>
+                                    <td>1</td>
+                                    <td><input type="text" name='name1'  placeholder='Name' class="form-control"/></td>
+                                    <td>
+                                        <input type="text" name='email1'  placeholder='Email' class="form-control col-md-2"/>
+                                    </td>
+                                    <td class="vcenter"><input type="checkbox" id="earning1" name="earning1"/></td>
+                                    <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
+                                    <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
+                                </tr>
                             {% endif %}  
                             <tr id='addr{{count}}'></tr>
                         </tbody>
@@ -112,10 +121,7 @@
             $('#addr'+i).html("<td>"+(i)+"</td>"+                        
                               "<td><input type='text' name='name"+(i)+"' placeholder='Name' class='form-control'/></td>"+
                               "<td>"+
-                                    "<div id='emailColumn'>"+
                                         "<input type='text' name='email"+(i)+"'  placeholder='Username' class='form-control col-md-2' style='width: 50%;'/>"+
-                                        "<input type='text' class='form-control col-md-2' value='@gmail.com' readonly style='width: 50%;'>"+
-                                    "</div>"+
                                 "</td>"+
                                 "<td class='vcenter'><input type='checkbox' id='earning"+(i)+"' name='earning"+(i)+"'/></td>"+
                                 "<td><span class='glyphicon glyphicon glyphicon-remove-sign remove'></span></td>"+

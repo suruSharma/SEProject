@@ -80,7 +80,7 @@ class AddHousehold(webapp2.RequestHandler):
             else:
                 isEarning = "yes"
             
-            profileId = addProfileToDS(memberName, memberUsername+"@gmail.com", isEarning,householdName, user)
+            profileId = addProfileToDS(memberName, memberUsername, isEarning,householdName, user)
             profileIdList.append(profileId)
             
         addProfileToDS("", user, "no", householdName, user)#This is to add user to profile table, if he doesn't exist
@@ -180,15 +180,14 @@ def createMemberRows(members):
     i = 1
     logging.info(members)
     for m in members:
-        if "@gmail.com" in m.email:
-            memObj = {
-                'name' : m.name,
-                'email' : m.email.split("@gmail.com")[0],
-                'isEarning' : "checked" if m.isEarning == True else "",
-                'id' : i
-            }
-            i = i+1
-            memberRows.append(memObj)
+        memObj = {
+            'name' : m.name,
+            'email' : m.email,
+            'isEarning' : "checked" if m.isEarning == True else "",
+            'id' : i
+        }
+        i = i+1
+        memberRows.append(memObj)
         
     logging.info(memberRows)
     return memberRows
@@ -317,7 +316,8 @@ class CreateHousehold(webapp2.RequestHandler):
             if(hhId is None or not hhId):
                 template_values = {
                     'user': user.nickname(),
-                    'url': url
+                    'url': url,
+                    'count' : 2
                     }
             else:
                 logging.info("Load household information")

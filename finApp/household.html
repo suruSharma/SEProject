@@ -40,8 +40,13 @@
             <h1>Household Details</h1>
         </div>
         <div class="container">
-            <form class="form-horizontal" id = "householdForm" role="form" action="/addHousehold" method="post">
-                <input type="hidden" class="form-control" name = "count" id="count" value=0>
+            <form class="form-horizontal" id = "householdForm" role="form" action="/{{action}}" method="post">
+                {% if members %}
+                    <input type="hidden" class="form-control" name = "memCount" id="memCount" value={{count}}>
+                    <input type="hidden" class="form-control" name = "hhid" id="hhid" value={{hhid}}>
+                {% else %}
+                    <input type="hidden" class="form-control" name = "memCount" id="memCount" value=1>
+                {% endif %}
                 <div class="form-group">
                     <label for="nickName" class="col-sm-3 form-control-label">Household Name</label>
                     <div class="col-sm-3">
@@ -67,15 +72,16 @@
                                 {% for m in members %}
                                     <tr id='addr{{m.id}}'>
                                         <td>{{m.id}}</td>
-                                        <td><input type="text" name='name{{m.id}}'  placeholder='Name' class="form-control" value = "{{m.name}}"/></td>
+                                        <td><input type="text" name='name{{m.id}}'  placeholder='Name' class="form-control" value = "{{m.name}}" disabled /></td>
                                         <td>
-                                            <input type="text" name='email{{m.id}}'  placeholder='Username' class="form-control col-md-2" value="{{m.email}}"/>
+                                            <input type="text" name='email{{m.id}}'  placeholder='Username' class="form-control col-md-2" value="{{m.email}}" disabled />
                                         </td>
-                                        <td class="vcenter"><input type="checkbox" id="earning{{m.id}}" name="earning{{m.id}}" {{m.isEarning}}/></td>
+                                        <td class="vcenter"><input type="checkbox" id="earning{{m.id}}" name="earning{{m.id}}" {{m.isEarning}} disabled /></td>
                                         <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
                                         <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
                                     </tr>
                                 {% endfor %}
+                                <tr id='addr{{count}}'></tr>
                             {% else %}
                                 <tr id='addr1'>
                                     <td>1</td>
@@ -87,22 +93,26 @@
                                     <td><span class="glyphicon glyphicon glyphicon-remove-sign remove"></span></td>
                                     <td><span class="glyphicon glyphicon glyphicon-plus-sign add"></span></td>
                                 </tr>
+                                <tr id='addr2'></tr>
                             {% endif %}  
-                            <tr id='addr{{count}}'></tr>
                         </tbody>
                     </table>
                 </div>
                 
                 <div class="form-group row">
                     <div class="col-sm-offset-5 col-sm-10">
-                        <button type="submit" class="btn btn-primary">SAVE</button>
+                        <button type="submit" class="btn btn-primary">{{button}}</button>
                     </div>
                 </div>
             </form>
         </div>
         <script>
         $(document).ready(function(){
-        var i={{count}};
+        {% if count %}
+            var i={{count}};
+        {% else %}
+            var i = 2
+        {% endif %}
         $("#add_row").click(function(){
         $('#addr'+i).html("");
 
@@ -111,17 +121,19 @@
         document.getElementById("count").value = i;
         });
         $("table#householdTable").on("click", ".remove", function () {
-        if(i > 1){
+        if(i > 2){
             $(this).closest('tr').remove();
             i--;
-            document.getElementById("count").value = i;
+            console.log(i)
+            document.getElementById("memCount").value = i;
         }
         });
         $("table#householdTable").on("click", ".add", function () {
+            
             $('#addr'+i).html("<td>"+(i)+"</td>"+                        
                               "<td><input type='text' name='name"+(i)+"' placeholder='Name' class='form-control'/></td>"+
                               "<td>"+
-                                        "<input type='text' name='email"+(i)+"'  placeholder='Username' class='form-control col-md-2' style='width: 50%;'/>"+
+                                        "<input type='text' name='email"+(i)+"'  placeholder='Email' class='form-control col-md-2'/>"+
                                 "</td>"+
                                 "<td class='vcenter'><input type='checkbox' id='earning"+(i)+"' name='earning"+(i)+"'/></td>"+
                                 "<td><span class='glyphicon glyphicon glyphicon-remove-sign remove'></span></td>"+
@@ -129,7 +141,8 @@
             
             $('#householdTable').append('<tr id="addr'+(i+1)+'"></tr>');
             i++; 
-            document.getElementById("count").value = i;
+            console.log(i)
+            document.getElementById("memCount").value = i;
         });
         });
         </script>

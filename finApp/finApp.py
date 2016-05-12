@@ -36,69 +36,22 @@ def getHouseholdMemberCombo(householdId, profileId):
     
 def getHousehold(householdId):
     return Household.query(Household.householdId == householdId).fetch()
-    
-class Household(ndb.Model):
-    householdId = ndb.IntegerProperty(indexed=True, required=True)
-    householdName = ndb.StringProperty()
-    
-class HouseholdMembers(ndb.Model):
-    householdId = ndb.IntegerProperty(indexed=True, required=True)
-    member = ndb.IntegerProperty()
-    
-class UserProfile(ndb.Model):
-    userId = ndb.IntegerProperty(indexed=True, required=True)
-    email = ndb.StringProperty(required=True)
-    name = ndb.StringProperty()
-    designation = ndb.StringProperty()
-    salary = ndb.IntegerProperty()
-    currency = ndb.StringProperty()
-    nickName = ndb.StringProperty()
-    company = ndb.StringProperty()
-    households = ndb.StringProperty(repeated=True)
-    isEarning = ndb.BooleanProperty()
-    
+
 def encode(s):
     return abs(hash(s)) % (10 ** 8)
-
-class AddHousehold(webapp2.RequestHandler):
-    def get(self):
-        logging.info("Inside get of Add Household")
-    def post(self):
-        template = JINJA_ENVIRONMENT.get_template('household.html')
-        householdName = self.request.get('householdName')
-        user = users.get_current_user().email()
-        householdId = addHousehold(householdName)
-        count = self.request.get('count')
-        #memberCount = int(count)+1 if int(count) == 0 else int(count)
-        profileIdList = []
-        for i in range(1, int(count)+1):
-            memberName = self.request.get('name'+str(i))
-            memberUsername = self.request.get('email'+str(i))
-            isEarning = self.request.get('earning'+str(i))
-            if(isEarning is None or not isEarning):
-                isEarning = "no"
-            else:
-                isEarning = "yes"
-            
-            profileId = addProfileToDS(memberName, memberUsername, isEarning,householdName, user)
-            profileIdList.append(profileId)
-            
-        addProfileToDS("", user, "no", householdName, user)#This is to add user to profile table, if he doesn't exist
-        profileIdList.append(int(encode(user)))
-        addHouseholdMembers(profileIdList, householdId)
-        
-        time.sleep(2)
-        self.redirect('/loadProfile')
-        
+    
 def addHouseholdMembers(profileIdList, householdId):
-    #Check for combination of 
     for profile in profileIdList:
-        householdMemberCombo = getHouseholdMemberCombo(householdId, profile)
-        if(householdMemberCombo is None or not householdMemberCombo):
+        household = getHousehold(householdId)
+        if(household is None or not household):
             householdMemberCombo = HouseholdMembers(parent=householdMembers_key())
             householdMemberCombo.householdId = householdId
             householdMemberCombo.member = profile
             householdMemberCombo.put()
+        else:
+            #Change this to update existing households
+            logging.info("Found the combo :     " + str(householdId) + "->" + str(profile))
+            logging.info(householdMemberCombo)
         
 def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
     userCode = encode(emailId)
@@ -107,10 +60,10 @@ def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
         profile = UserProfile(parent=profile_key(int(userCode)))
         profile.userId = int(userCode)
         profile.name = name
-        profile.email = str(emailId)
+        profile.email = emailId
         profile.isEarning = True if isEarning == "yes" else False
         profile.put()
-    sendMailToMember(name, emailId, householdName, userEmail)
+    #sendMailToMember(name, emailId, householdName, userEmail)
     return userCode
 
 def sendMailToMember(name, emailId, householdName, userEmail):
@@ -121,7 +74,7 @@ def sendMailToMember(name, emailId, householdName, userEmail):
                         You have been added to """+householdName+""" by """+userEmail+""". Please click on http://toalmoal.appspot.com/loadProfile to update your profile""")  
                        
 def addHousehold(householdName):
-    householdId = int(encode(householdName))
+    householdId = str(uuid.uuid4())
     household = getHousehold(householdId)
     if(household is None or not household):
         household = Household(parent=household_key(householdId))
@@ -154,7 +107,7 @@ def getAllMembersOfHousehold(hId):
 def getListOfMemberNames(members):
     names = []
     for m in members:
-        names.append(m.name.split()[0])
+        names.append(m.email if m.name is None or not m.name else m.name.split()[0])
     return names
     
 #Param houeholds = lis of households a person belongs to    
@@ -163,7 +116,6 @@ def getHouseholdInformation(households):
     for hh in households:
         hId = hh.householdId
         hhInfo = getHousehold(hId)
-        logging.info(hhInfo)
         members = getAllMembersOfHousehold(hhInfo[0].householdId)
         names = getListOfMemberNames(members)
         hh = {
@@ -178,7 +130,6 @@ def getHouseholdInformation(households):
 def createMemberRows(members):
     memberRows = []
     i = 1
-    logging.info(members)
     for m in members:
         memObj = {
             'name' : m.name,
@@ -189,12 +140,67 @@ def createMemberRows(members):
         i = i+1
         memberRows.append(memObj)
         
-    logging.info(memberRows)
     return memberRows
+
+def deleteHouseholdRecords(hhid):
+    hh = getHousehold(str(hhid))
+    #delete the Household entry
+    hh[0].key.delete()
+    
+    #delete the HouseholdMembers entry
+    members = getHouseholdMembersByHouseholdId(str(hhid))
+    for m in members:
+        m.key.delete()
         
+class Household(ndb.Model):
+    householdId = ndb.StringProperty(indexed=True, required=True)
+    householdName = ndb.StringProperty()
+    
+class HouseholdMembers(ndb.Model):
+    householdId = ndb.StringProperty(indexed=True, required=True)
+    member = ndb.IntegerProperty()
+    
+class UserProfile(ndb.Model):
+    userId = ndb.IntegerProperty(indexed=True, required=True)
+    email = ndb.StringProperty(required=True)
+    name = ndb.StringProperty()
+    designation = ndb.StringProperty()
+    salary = ndb.IntegerProperty()
+    currency = ndb.StringProperty()
+    nickName = ndb.StringProperty()
+    company = ndb.StringProperty()
+    households = ndb.StringProperty(repeated=True)
+    isEarning = ndb.BooleanProperty()
+    
+class AddHousehold(webapp2.RequestHandler):
+    def post(self):
+        template = JINJA_ENVIRONMENT.get_template('household.html')
+        householdName = self.request.get('householdName')
+        user = users.get_current_user().email()
+        householdId = addHousehold(householdName)
+        count = self.request.get('memCount')
+        profileIdList = []
+        count = 2 if int(count) == 1 else int(count)
+        for i in range(1, count):
+            memberName = self.request.get('name'+str(i))
+            memberUsername = self.request.get('email'+str(i))
+            isEarning = self.request.get('earning'+str(i))
+            if(isEarning is None or not isEarning):
+                isEarning = "no"
+            else:
+                isEarning = "yes"
+            
+            profileId = addProfileToDS(memberName, memberUsername, isEarning,householdName, user)
+            profileIdList.append(profileId)
+            
+        addProfileToDS("", user, "no", householdName, user)#This is to add user to profile table, if he doesn't exist
+        profileIdList.append(int(encode(user)))
+        addHouseholdMembers(profileIdList, householdId)
+        
+        time.sleep(2)
+        self.redirect('/loadProfile')
+              
 class UpdateProfile(webapp2.RequestHandler):
-    def get(self):
-        logging.info("Inside get of Updateprofile")
     def post(self):
         template = JINJA_ENVIRONMENT.get_template('profile.html')
         error = None
@@ -266,7 +272,6 @@ class LoadProfile(webapp2.RequestHandler):
             profileInfo = getProfileInformation(userCode)
             url = users.create_logout_url(self.request.uri)
             if profileInfo is None or not profileInfo:
-                logging.info(householdTableInfo)
                 #The user is not present in the system yet
                 template_values = {
                 'user': user.nickname(),
@@ -293,7 +298,6 @@ class LoadProfile(webapp2.RequestHandler):
                 'company' : profileInfo[0].company,
                 'hhTable' : householdTableInfo
                 }
-                logging.info(householdTableInfo)
                 
             template_values = template_values
             template = JINJA_ENVIRONMENT.get_template('profile.html')
@@ -304,7 +308,38 @@ class LoadProfile(webapp2.RequestHandler):
             }
             template = JINJA_ENVIRONMENT.get_template('landing.html')
             self.response.write(template.render(template_values))
+
+class UpdateHousehold(webapp2.RequestHandler):
+    def get(self):
+        logging.info('update household')
+    def post(self):
+        template = JINJA_ENVIRONMENT.get_template('household.html')
+        householdName = self.request.get('householdName')
+        user = users.get_current_user().email()
+        hhid = self.request.get('hhid')
+        deleteHouseholdRecords(hhid)
+        count = self.request.get('memCount')
+        profileIdList = []
+        count = 2 if int(count) == 1 else int(count)
+        for i in range(1, count):
+            memberName = self.request.get('name'+str(i))
+            memberUsername = self.request.get('email'+str(i))
+            isEarning = self.request.get('earning'+str(i))
+            if(isEarning is None or not isEarning):
+                isEarning = "no"
+            else:
+                isEarning = "yes"
             
+            #profileId = addProfileToDS(memberName, memberUsername, isEarning,householdName, user)
+            profileIdList.append(profileId)
+            
+        #addProfileToDS("", user, "no", householdName, user)#This is to add user to profile table, if he doesn't exist
+        #profileIdList.append(int(encode(user)))
+        addHouseholdMembers(profileIdList, householdId)
+        
+        time.sleep(2)
+        self.redirect('/loadProfile')
+        
 class CreateHousehold(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
@@ -317,12 +352,13 @@ class CreateHousehold(webapp2.RequestHandler):
                 template_values = {
                     'user': user.nickname(),
                     'url': url,
-                    'count' : 2
+                    'action' : 'addHousehold',
+                    'button' : 'SAVE'
                     }
             else:
-                logging.info("Load household information")
-                hh = getHousehold(int(hhId))
-                hhMembers = getAllMembersOfHousehold(int(hhId))
+                hh = getHousehold(hhId)
+                logging.info(hh)
+                hhMembers = getAllMembersOfHousehold(hhId)
                 memberRows = createMemberRows(hhMembers)
                 template_values = {
                     'user': user.nickname(),
@@ -330,7 +366,9 @@ class CreateHousehold(webapp2.RequestHandler):
                     'hhname' : hh[0].householdName,
                     'hhid' : hh[0].householdId,
                     'members' : memberRows,
-                    'count' : int(len(memberRows))+1
+                    'count' : int(len(memberRows))+1,
+                    'action' : 'updateHousehold',
+                    'button' : 'UPDATE'
                 }
             template_values = template_values
             template = JINJA_ENVIRONMENT.get_template('household.html')
@@ -369,5 +407,6 @@ app = webapp2.WSGIApplication([
     ('/saveProfile', SaveProfile),
     ('/updateProfile', UpdateProfile),
     ('/household', CreateHousehold),
-    ('/addHousehold', AddHousehold)
+    ('/addHousehold', AddHousehold),
+    ('/updateHousehold', UpdateHousehold)
 ], debug=True)

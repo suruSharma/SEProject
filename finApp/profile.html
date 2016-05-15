@@ -45,12 +45,6 @@
             </div>
         </div>
         <div class="form-group row">
-            <label for="nickName" class="col-sm-3 form-control-label">Nick Name</label>
-            <div class="col-sm-9">
-            <input type="text" class="form-control" name = "nickName" id="nickName" placeholder="Nick Name(upto 5 characters)" value="{{nickName}}">
-            </div>
-        </div>
-        <div class="form-group row">
             <label for="email" class="col-sm-3 form-control-label">Email</label>
             <div class="col-sm-9">
             <input type="email" class="form-control" name = "email" id="email" placeholder="email" value="{{email}}" readonly>
@@ -85,6 +79,12 @@
                       <option>INR</option>
                     </select>
                 {% endif %}
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="debt" class="col-sm-3 form-control-label">Debt</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" name = "debt" id="debt" placeholder="00000" value="{{debt}}">
             </div>
         </div>
         <div class="form-group row">

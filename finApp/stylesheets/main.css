@@ -220,3 +220,29 @@ h4 {
 #emailColumn {
     display: block;
 }
+
+.left {
+    width: 30%;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    -ms-text-overflow:ellipsis;
+    float: left;
+}
+.right {
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+.modal {
+   position: absolute;
+   bottom: 0;
+   left: 0;
+   z-index: 10040;
+   overflow: auto;
+   overflow-y: auto;
+}
+
+.form-control[readonly="readonly"], .form-control[readonly] { background-color:white; }
+
+

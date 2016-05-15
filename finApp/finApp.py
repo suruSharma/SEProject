@@ -63,7 +63,7 @@ def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
         profile.email = emailId
         profile.isEarning = True if isEarning == "yes" else False
         profile.put()
-    #sendMailToMember(name, emailId, householdName, userEmail)
+    sendMailToMember(name, emailId, householdName, userEmail)
     return userCode
 
 def sendMailToMember(name, emailId, householdName, userEmail):
@@ -167,7 +167,7 @@ class UserProfile(ndb.Model):
     designation = ndb.StringProperty()
     salary = ndb.IntegerProperty()
     currency = ndb.StringProperty()
-    nickName = ndb.StringProperty()
+    debt = ndb.IntegerProperty()
     company = ndb.StringProperty()
     households = ndb.StringProperty(repeated=True)
     isEarning = ndb.BooleanProperty()
@@ -211,12 +211,12 @@ class UpdateProfile(webapp2.RequestHandler):
         salary = int(self.request.get('salary'))
         currency = self.request.get('currency')
         userId = self.request.get('userId')
-        nickName  =self.request.get('nickName')
+        debt  = int(self.request.get('debt'))
         company = self.request.get('company')
         
         profile = getProfileInformation(int(userId))
         profile[0].userId = int(userId)
-        profile[0].nickName = nickName
+        profile[0].debt = debt
         profile[0].name = name
         profile[0].designation = designation
         profile[0].salary = salary
@@ -242,12 +242,12 @@ class SaveProfile(webapp2.RequestHandler):
         salary = int(self.request.get('salary'))
         currency = self.request.get('currency')
         userId = self.request.get('userId')
-        nickName = self.request.get('nickName')
+        debt = self.request.get('debt')
         company = self.request.get('company')
         
         profile = UserProfile(parent=profile_key(int(userId)))
         profile.userId = int(userId)
-        profile.nickName = nickName
+        profile.debt = int(debt)
         profile.name = name
         profile.designation = designation
         profile.salary = salary
@@ -286,16 +286,16 @@ class LoadProfile(webapp2.RequestHandler):
                 template_values = {
                 'user': user.nickname(),
                 'url': url,
-                'name' : profileInfo[0].name,
-                'designation' : profileInfo[0].designation,
-                'salary' : profileInfo[0].salary,
+                'name' : '' if profileInfo[0].name == None else profileInfo[0].name,
+                'designation' : '' if profileInfo[0].designation == None else profileInfo[0].designation,
+                'salary' : '' if profileInfo[0].salary == None else profileInfo[0].salary,
                 'currency' : profileInfo[0].currency,
                 'email' : profileInfo[0].email,
                 'userId' : profileInfo[0].userId,
                 'button' : 'UPDATE',
                 'action' : 'updateProfile',
-                'nickName' : profileInfo[0].nickName,
-                'company' : profileInfo[0].company,
+                'debt' : '' if profileInfo[0].debt == None else profileInfo[0].debt,
+                'company' : '' if profileInfo[0].company == None else profileInfo[0].company,
                 'hhTable' : householdTableInfo
                 }
                 

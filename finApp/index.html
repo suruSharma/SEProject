@@ -1,41 +1,163 @@
 <!DOCTYPE html>
 {% autoescape true %}
 <html>
-  <head>
-    <title>ToalMoal - Financial Mgmt Tool</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=2048">
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>  
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
-  </head>
-  <body>
-  <nav class="navbar navbar-right">
-  <div class="container">
-    <div class="collapse navbar-collapse" id="myNavbar">
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href='/'>HOME</a></li>
-        <div class="dropdown">
-            <button class="dropbtn">OPTIONS</button>
-            <div class="dropdown-content">
-                <a href="/loadProfile">Profile</a>
-                <a href="/household">Create household</a>
-                <a href="{{ url|safe }}">LOGOUT</a>
+    <head>
+        <title>ToalMoal - Financial Mgmt Tool</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=2048">
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>  
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    </head>
+    <body>
+        <nav class="navbar navbar-right">
+            <div class="container">
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href='/'>HOME</a></li>
+                        <div class="dropdown">
+                            <button class="dropbtn">OPTIONS</button>
+                            <div class="dropdown-content">
+                                <a href="/loadProfile">Profile</a>
+                                <a href="/household">Create household</a>
+                                <a href="{{ url|safe }}">LOGOUT</a>
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="jumbotron text-center">
+            <h1>Hi {{user}}</h1>
+        </div>
+        <div class="container">
+            <div class="left"> 
+                <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#demo" id="toolsButton">
+                    <span class="glyphicon glyphicon-collapse-down"></span> Tools
+                </button>
+                <div id="demo" class="collapse">
+                    <!-- Trigger the modal with a button -->
+                    <button type="button" class="btn btn-default btn-xs" id="myBtn">Debt Calculator</button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="myModal" role="dialog">
+                        <div class="modal-dialog">
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header" style="padding:35px 50px;">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4><span class="glyphicon glyphicon-lock"></span> Login</h4>
+                                </div>
+                                <div class="modal-body" style="padding:40px 50px;">
+                                    <form role="form">
+                                        <div class="form-group">
+                                            <label for="usrname"><span class="glyphicon glyphicon-user"></span> Username</label>
+                                            <input type="text" class="form-control" id="usrname" placeholder="Enter email">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="psw"><span class="glyphicon glyphicon-eye-open"></span> Password</label>
+                                            <input type="text" class="form-control" id="psw" placeholder="Enter password">
+                                        </div>
+                                        <div class="checkbox">
+                                            <label><input type="checkbox" value="" checked>Remember me</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-success btn-block"><span class="glyphicon glyphicon-off"></span> Login</button>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                                    <p>Not a member? <a href="#">Sign Up</a></p>
+                                    <p>Forgot <a href="#">Password?</a></p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div> 
+                </div>
+            </div>
+            <div class="right">
+                <ul class="nav nav-tabs nav-justified">
+                    <li class="active"><a data-toggle="pill" href="#home">Personal</a></li>
+                    <li><a data-toggle="pill" href="#menu1">Household</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="home" class="tab-pane fade in active">
+                        <h2>Summary</h2>
+                        <form class="form-horizontal" role="form"> 
+                                <input type="hidden" class="form-control">
+                                    <div class="form-group row">
+                                        <label for="name" class="col-sm-3 form-control-label">Name</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" name = "name" id="name" placeholder="Name" value="{{name}}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="income" class="col-sm-3 form-control-label">Income</label>
+                                        <div class="col-sm-6">
+                                            <input type="text" class="form-control" name = "income" id="income" placeholder="00000" value="{{income}}" readonly>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" name = "currency" id="currency" value="{{currency}}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="debt" class="col-sm-3 form-control-label">Debt</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" name = "debt" id="debt" placeholder="00000" value="{{debt}}" readonly>
+                                        </div>
+                                    </div>
+                        </form>
+                    </div>
+                    <div id="menu1" class="tab-pane fade">
+                        <h2>Summary</h2>
+                        <form class="form-horizontal" role="form"> 
+                                <input type="hidden" class="form-control">
+                                    <div class="form-group row">
+                                        <label for="name" class="col-sm-3 form-control-label">Household Name</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" name = "name" id="name" value="{{name}}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="income" class="col-sm-3 form-control-label">Net Income</label>
+                                        <div class="col-sm-6">
+                                            <input type="text" class="form-control" name = "income" id="income" placeholder="00000" value="{{income}}" readonly>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <input type="text" class="form-control" name = "currency" id="currency" value="{{currency}}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="debt" class="col-sm-3 form-control-label">Net Debt</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" name = "debt" id="debt" placeholder="00000" value="{{debt}}" readonly>
+                                        </div>
+                                    </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="jumbotron text-center">
-            <h1>Hi {{user}}</h1>
-            <div id="formDiv" class="container">
-            <form class="form-horizontal" id="searchForm" role="form" action="/search" method="get">
-            </form>
-            </div>
-    </div>
-  </body>
+        <script>
+            $(document).ready(function(){
+                $("#demo").on("hide.bs.collapse", function(){
+                    $("#toolsButton").html('<span class="glyphicon glyphicon-collapse-down"></span> Tools');
+                });
+                $("#demo").on("show.bs.collapse", function(){
+                    $("#toolsButton").html('<span class="glyphicon glyphicon-collapse-up"></span> Close');
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function(){
+                $("#myBtn").click(function(){
+                    $("#myModal").modal();
+                });
+            });
+        </script>
+    </body>
 </html>
 {% endautoescape %}

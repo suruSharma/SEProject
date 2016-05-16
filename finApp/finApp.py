@@ -386,12 +386,22 @@ class MainPage(webapp2.RequestHandler):
         if user:
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'SIGN OUT'
+            userCode = encode(user.email())
+            households = getHouseholdsListByUserId(int(userCode))#This returns a list of  households a person belongs to
+            householdTableInfo = getHouseholdInformation(households)#This returns a list of data to populate the household table
+            profileInfo = getProfileInformation(userCode)
+            
             template_values = {
             'user': user.nickname(),
             'url': url,
             'userPage' : "no",
             'url_linktext': url_linktext,
+            'name' : '' if profileInfo[0].name == None else profileInfo[0].name,
+            'income' : '' if profileInfo[0].salary == None else profileInfo[0].salary,
+            'currency' : profileInfo[0].currency,
+            'debt' : '' if profileInfo[0].debt == None else profileInfo[0].debt
             }
+            
             template = JINJA_ENVIRONMENT.get_template('index.html')
             self.response.write(template.render(template_values))
         else:

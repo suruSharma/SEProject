@@ -51,7 +51,6 @@ def addHouseholdMembers(profileIdList, householdId):
         else:
             #Change this to update existing households
             logging.info("Found the combo :     " + str(householdId) + "->" + str(profile))
-            logging.info(householdMemberCombo)
         
 def addProfileToDS(name, emailId, isEarning, householdName, userEmail):
     userCode = encode(emailId)
@@ -379,7 +378,27 @@ class CreateHousehold(webapp2.RequestHandler):
             }
             template = JINJA_ENVIRONMENT.get_template('landing.html')
             self.response.write(template.render(template_values))
-             
+
+def getSummaryofHouseholds(households):
+    #logging.info(households)
+    summary = []
+    for hh in households:
+        members = getAllMembersOfHousehold(hh['hId'])
+        netSalary = 0
+        netDebt = 0
+        for m in members:
+            if m.salary is not None:
+                netSalary = netSalary + m.salary
+            if m.debt is not None:    
+                netDebt = netDebt + m.debt
+        sum = {
+            'hhname' : hh['hname'],
+            'netSal' : netSalary,
+            'netDebt' : netDebt
+        }
+        summary.append(sum)
+    return summary
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
@@ -389,6 +408,7 @@ class MainPage(webapp2.RequestHandler):
             userCode = encode(user.email())
             households = getHouseholdsListByUserId(int(userCode))#This returns a list of  households a person belongs to
             householdTableInfo = getHouseholdInformation(households)#This returns a list of data to populate the household table
+            hhSummary = getSummaryofHouseholds(householdTableInfo)
             profileInfo = getProfileInformation(userCode)
             
             template_values = {
@@ -399,9 +419,10 @@ class MainPage(webapp2.RequestHandler):
             'name' : '' if profileInfo[0].name == None else profileInfo[0].name,
             'income' : '' if profileInfo[0].salary == None else profileInfo[0].salary,
             'currency' : profileInfo[0].currency,
-            'debt' : '' if profileInfo[0].debt == None else profileInfo[0].debt
+            'debt' : '' if profileInfo[0].debt == None else profileInfo[0].debt,
+            'hhsummary' : hhSummary
             }
-            
+            logging.info(hhSummary)
             template = JINJA_ENVIRONMENT.get_template('index.html')
             self.response.write(template.render(template_values))
         else:

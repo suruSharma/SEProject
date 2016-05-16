@@ -113,30 +113,32 @@
                     </div>
                     <div id="menu1" class="tab-pane fade">
                         <h2>Summary</h2>
-                        <form class="form-horizontal" role="form"> 
-                                <input type="hidden" class="form-control">
-                                    <div class="form-group row">
-                                        <label for="name" class="col-sm-3 form-control-label">Household Name</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" class="form-control" name = "name" id="name" value="{{name}}" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="income" class="col-sm-3 form-control-label">Net Income</label>
-                                        <div class="col-sm-6">
-                                            <input type="text" class="form-control" name = "income" id="income" placeholder="00000" value="{{income}}" readonly>
-                                        </div>
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control" name = "currency" id="currency" value="{{currency}}" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <label for="debt" class="col-sm-3 form-control-label">Net Debt</label>
-                                        <div class="col-sm-9">
-                                            <input type="text" class="form-control" name = "debt" id="debt" placeholder="00000" value="{{debt}}" readonly>
-                                        </div>
-                                    </div>
-                        </form>
+                        {% if hhsummary %}
+                            {% for h in hhsummary %}
+                                <form class="form-horizontal" role="form"> 
+                                        <input type="hidden" class="form-control">
+                                            <div class="form-group row">
+                                                <label for="name" class="col-sm-3 form-control-label">Household Name</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" name = "name" id="name" value="{{h.hhname}}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <label for="income" class="col-sm-3 form-control-label">Net Income</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" name = "income" id="income" placeholder="00000" value="{{h.netSal}}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <label for="debt" class="col-sm-3 form-control-label">Net Debt</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" name = "debt" id="debt" placeholder="00000" value="{{h.netDebt}}" readonly>
+                                                </div>
+                                            </div>
+                                </form>
+                                <hr></hr>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

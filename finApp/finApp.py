@@ -18,12 +18,16 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
-DEFAULT_KEY = "default_key"   
+DEFAULT_KEY = "default_key"
+   
 def getProfileInformation(userId):
     return UserProfile.query(UserProfile.userId == userId).fetch()
     
 def profile_key(userId):
     return ndb.Key('Profile', userId)
+
+def account_key(userId):
+    return ndb.Key('BankAccounts', userId)
 
 def household_key(householdId):
     return ndb.Key('Household', householdId)
@@ -150,7 +154,19 @@ def deleteHouseholdRecords(hhid):
     members = getHouseholdMembersByHouseholdId(str(hhid))
     for m in members:
         m.key.delete()
-        
+
+def getAllBankAccountsForUser(userId):
+    return BankAccounts.query(BankAccounts.userId == userId).fetch()
+    
+def getBankAccountById(accountId):
+    return BankAccounts.query(BankAccounts.accountId == accountId).fetch()
+    
+def getCcAccountById(ccId):
+    return CCAccounts.query(CCAccounts.accountId == ccId).fetch()
+    
+def getAllCCAccountsForUser(userId):
+    return CCAccounts.query(CCAccounts.userId == userId).fetch()
+    
 class Household(ndb.Model):
     householdId = ndb.StringProperty(indexed=True, required=True)
     householdName = ndb.StringProperty()
@@ -163,14 +179,20 @@ class UserProfile(ndb.Model):
     userId = ndb.IntegerProperty(indexed=True, required=True)
     email = ndb.StringProperty(required=True)
     name = ndb.StringProperty()
-    designation = ndb.StringProperty()
-    salary = ndb.IntegerProperty()
-    currency = ndb.StringProperty()
+
+class BankAccounts(ndb.Model):
+    accountId = ndb.IntegerProperty(indexed=True, required=True)
+    userId = ndb.IntegerProperty(indexed=True, required=True)
+    accountName = ndb.StringProperty(required=True)
+    balance = ndb.IntegerProperty()
+
+class CCAccounts(ndb.Model):
+    accountId = ndb.IntegerProperty(indexed=True, required=True)
+    userId = ndb.IntegerProperty(indexed=True, required=True)
+    ccName = ndb.StringProperty(required=True)
     debt = ndb.IntegerProperty()
-    company = ndb.StringProperty()
-    households = ndb.StringProperty(repeated=True)
-    isEarning = ndb.BooleanProperty()
-    
+    limit = ndb.IntegerProperty()
+                
 class AddHousehold(webapp2.RequestHandler):
     def post(self):
         template = JINJA_ENVIRONMENT.get_template('household.html')
@@ -228,85 +250,173 @@ class UpdateProfile(webapp2.RequestHandler):
         #Go back to main page. TODO : Change this to update 
         time.sleep(3)
         self.redirect('/loadProfile')
-    
+
+def deleteOldBankData(userId):
+    bankAccount = getAllBankAccountsForUser(int(userId))
+    for ba in bankAccount:
+        ba.key.delete()
+
+def deleteOldProfileData(userId):
+    profile = getProfileInformation(int(userId))
+    for p in profile:
+        p.key.delete()
+        
+def deleteOldCcData(userId):
+    ccAccount = getAllCCAccountsForUser(int(userId))
+    for cc in ccAccount:
+        cc.key.delete()
+        
 class SaveProfile(webapp2.RequestHandler):
     def post(self):
-        #This will be used to add/update profile in a datastore. Will be called when the user clicks on submit button on the Profile Page
         template = JINJA_ENVIRONMENT.get_template('profile.html')
         error = None
-        user = users.get_current_user()
         
         name = self.request.get('name')
-        designation = self.request.get('designation')
-        salary = int(self.request.get('salary'))
-        currency = self.request.get('currency')
-        userId = self.request.get('userId')
-        debt = self.request.get('debt')
-        company = self.request.get('company')
-        
+        email = self.request.get('email')
+        userId = encode(email)
+        deleteOldProfileData(int(userId))
         profile = UserProfile(parent=profile_key(int(userId)))
         profile.userId = int(userId)
-        profile.debt = int(debt)
         profile.name = name
-        profile.designation = designation
-        profile.salary = salary
-        profile.currency = currency
-        profile.email = str(users.get_current_user().email())
-        profile.company = company
-        profile.isEarning = True if salary > 0 else False
+        profile.email = email
+        
+        #Have to add bank accounts in another table
+        bankCount = self.request.get('bankCount')
+        bankRecords = self.request.get('bankRecords')
+        deleteOldBankData(int(userId))
+        if bankRecords == "yes":
+            for i in range(0, int(bankCount)):
+                bankName = self.request.get('acc'+str(i))
+                balance = self.request.get('bal'+str(i))
+                accountId = self.request.get('accountId'+str(i))
+                
+                if bankName:
+                    #TODO: Check if the bank name already exists
+                    if not balance:
+                        balance = "0"
+                    if not accountId:
+                       bankId = encode(str(uuid.uuid4()))
+                    else:
+                        bankId = accountId
+                        
+                    account = BankAccounts(parent=account_key(int(userId)))
+                    account.accountId = int(bankId)
+                    account.userId = int(userId)
+                    account.accountName = bankName
+                    account.balance = int(balance)
+                    
+                    account.put()
+                else:
+                    logging.info("No bank name ")
+                
+        #Have to add cc accounts in another table
+        ccCount = self.request.get('ccCount')
+        ccRecords = self.request.get('ccRecords')
+        deleteOldCcData(int(userId))
+        if ccRecords == "yes":
+            for i in range(0, int(ccCount)):
+                ccName = self.request.get('cc'+str(i))
+                debt = self.request.get('debt'+str(i))
+                limit = self.request.get('limit'+str(i))
+                ccAccountId = self.request.get('accountId'+str(i))
+                
+                if ccName:
+                    #TODO: Check if the cc name already exists
+                    if not debt:
+                        debt = "0"
+                    if not limit:
+                        limit = "0"
+                    if not ccAccountId:
+                        ccId = encode(str(uuid.uuid4()))
+                    else:
+                        ccId = ccAccountId
+                        
+                        
+                    ccAccount = CCAccounts(parent=account_key(int(userId)))
+                    ccAccount.accountId = int(ccId)
+                    ccAccount.userId = int(userId)
+                    ccAccount.ccName = ccName
+                    ccAccount.debt = int(debt)
+                    ccAccount.limit = int(limit)
+                    
+                    ccAccount.put()
+                else:
+                    logging.info("No cc name ") 
+
+                
         profile.put()
         
-        #Go back to main page. TODO : Change this to update 
         time.sleep(3)
-        self.redirect('/loadProfile')
+        self.redirect('/profile')
+
+def createCcObjectForDisplay(ccAccounts):
+    displayObjects = []
+    number = 0
+    srno = 1
+    
+    for cc in ccAccounts:
+        obj = {
+            'number' : number,
+            'srno' : srno,
+            'accountId' : cc.accountId,
+            'ccName' : cc.ccName,
+            'debt' : cc.debt,
+            'limit' : cc.limit
+        }
+        displayObjects.append(obj)
+        number = number + 1
+        srno = srno+1
+    
+    return displayObjects
+    
+def createBankObjectForDisplay(bankAccounts):
+    displayObjects = []
+    number = 0
+    srno = 1
+    
+    for ba in bankAccounts:
+        obj = {
+            'number' : number,
+            'srno' : srno,
+            'accountId' : ba.accountId,
+            'accountName' : ba.accountName,
+            'balance' : ba.balance
+        }
+        displayObjects.append(obj)
+        number = number + 1
+        srno = srno+1
+    
+    return displayObjects
     
 class LoadProfile(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
         
         if user:
-            userCode = encode(user.email())
-            households = getHouseholdsListByUserId(int(userCode))#This returns a list of  households a person belongs to
-            householdTableInfo = getHouseholdInformation(households)#This returns a list of data to populate the household table
-            profileInfo = getProfileInformation(userCode)
-            url = users.create_logout_url(self.request.uri)
-            if profileInfo is None or not profileInfo:
-                #The user is not present in the system yet
-                template_values = {
-                'user': user.nickname(),
-                'url': url,
-                'email' : user.email(),
-                'userId' : userCode,
-                'button' : 'SAVE',
-                'action' : 'saveProfile',
-                'hhTable' : householdTableInfo
-                }
-            else:
-                template_values = {
-                'user': user.nickname(),
-                'url': url,
-                'name' : '' if profileInfo[0].name == None else profileInfo[0].name,
-                'designation' : '' if profileInfo[0].designation == None else profileInfo[0].designation,
-                'salary' : '' if profileInfo[0].salary == None else profileInfo[0].salary,
-                'currency' : profileInfo[0].currency,
-                'email' : profileInfo[0].email,
-                'userId' : profileInfo[0].userId,
-                'button' : 'UPDATE',
-                'action' : 'updateProfile',
-                'debt' : '' if profileInfo[0].debt == None else profileInfo[0].debt,
-                'company' : '' if profileInfo[0].company == None else profileInfo[0].company,
-                'hhTable' : householdTableInfo
-                }
-                
-            template_values = template_values
-            template = JINJA_ENVIRONMENT.get_template('profile.html')
-            self.response.write(template.render(template_values))
-        else:
-            template_values = {
-                'url' : users.create_login_url(self.request.uri)
+           url = users.create_logout_url(self.request.uri)
+           #Fetch bank account records 
+           bankAccounts = getAllBankAccountsForUser(int(encode(user.email())))
+           ccAccounts = getAllCCAccountsForUser(int(encode(user.email())))
+           profile = getProfileInformation(int(encode(user.email())))
+           template_values = {
+            'url' : url,
+            'user' : user,
+            'email' : user.email(),
+            'name' : profile[0].name if profile else '',
+            'button' : 'SAVE POFILE',
+            'action' : 'saveProfile',
+            'bankCount': len(bankAccounts) if bankAccounts else '1',
+            'ccCount' : len(ccAccounts) if ccAccounts else '1',
+            'bankAccounts' : createBankObjectForDisplay(bankAccounts),
+            'ccAccounts' : createCcObjectForDisplay(ccAccounts)
             }
-            template = JINJA_ENVIRONMENT.get_template('landing.html')
-            self.response.write(template.render(template_values))
+
+           #Load profile details pending
+           template = JINJA_ENVIRONMENT.get_template('profile.html')
+           self.response.write(template.render(template_values)) 
+            
+        else:
+           self.redirect(users.create_login_url(self.request.uri))
 
 class UpdateHousehold(webapp2.RequestHandler):
     def get(self):
@@ -399,42 +509,45 @@ def getSummaryofHouseholds(households):
         summary.append(sum)
     return summary
 
-class MainPage(webapp2.RequestHandler):
+class AccountInfo(webapp2.RequestHandler):
     def get(self):
+        #Checks for active Google session
         user = users.get_current_user()
         if user:
             url = users.create_logout_url(self.request.uri)
-            url_linktext = 'SIGN OUT'
-            userCode = encode(user.email())
-            households = getHouseholdsListByUserId(int(userCode))#This returns a list of  households a person belongs to
-            householdTableInfo = getHouseholdInformation(households)#This returns a list of data to populate the household table
-            hhSummary = getSummaryofHouseholds(householdTableInfo)
-            profileInfo = getProfileInformation(userCode)
             
             template_values = {
-            'user': user.nickname(),
-            'url': url,
-            'userPage' : "no",
-            'url_linktext': url_linktext,
-            'name' : '' if profileInfo[0].name == None else profileInfo[0].name,
-            'income' : '' if profileInfo[0].salary == None else profileInfo[0].salary,
-            'currency' : profileInfo[0].currency,
-            'debt' : '' if profileInfo[0].debt == None else profileInfo[0].debt,
-            'hhsummary' : hhSummary
+            'url' : url,
+            'user' : user
             }
-            logging.info(hhSummary)
+
+            template = JINJA_ENVIRONMENT.get_template('accounts.html')
+            self.response.write(template.render(template_values))
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
+            
+class MainPage(webapp2.RequestHandler):
+    def get(self):
+        #Checks for active Google session
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            
+            template_values = {
+            'userPage' : "no",
+            'url' : url,
+            'user' : user
+            }
+
             template = JINJA_ENVIRONMENT.get_template('index.html')
             self.response.write(template.render(template_values))
         else:
-            template_values = {
-                'url' : users.create_login_url(self.request.uri)
-            }
-            template = JINJA_ENVIRONMENT.get_template('landing.html')
-            self.response.write(template.render(template_values))
+            self.redirect(users.create_login_url(self.request.uri))
             
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/loadProfile', LoadProfile),
+    ('/accountInfo', AccountInfo),
+    ('/profile', LoadProfile),
     ('/saveProfile', SaveProfile),
     ('/updateProfile', UpdateProfile),
     ('/household', CreateHousehold),

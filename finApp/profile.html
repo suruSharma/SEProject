@@ -1,125 +1,198 @@
 <!DOCTYPE html>
 {% autoescape true %}
-<html lang="en">
-<head>
-  <title>Profile</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=2048">
-  
-  <link rel="stylesheet" rel="stylesheet" href="/stylesheets/bootstrap.min.css">
-  <link rel="stylesheet" rel="stylesheet" href="/stylesheets/main.css" />
-  <script src="/js/jquery.min.js"></script>  
-  <script src="/js/bootstrap.min.js"></script>
-  <script src="/js/app.js"></script>
-
-</head>
-<body>
-    <nav class="navbar navbar-right">
-  <div class="container">
-    <div class="collapse navbar-collapse" id="myNavbar">
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href='/'>HOME</a></li>
-        <div class="dropdown">
-            <button class="dropbtn">OPTIONS</button>
-            <div class="dropdown-content">
-                <a href="/household">Create household</a>
-                <a href="{{ url|safe }}">LOGOUT</a>
+<html>
+    <head>
+        <title>Toal Moal : Accounts Information</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=2048">
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>  
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">ToalMoal</a>
+                </div>
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="/"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/accountInfo"><span class="glyphicon glyphicon-user"></span> Accounts</a></li>
+                    <li><a href="{{ url|safe }}"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
+                </ul>
             </div>
+        </nav>
+
+    <div class="container-fluid text-center">
+        <div class="row content">
+            <div class="col-sm-2 sidenav"></div>
+            <div class="col-sm-8 text-left">
+                <form class="form-horizontal" id = "profileForm" role="form" action="/{{action}}" method="post">
+                    <br><br>
+                    <div class="form-group row">
+                        <label class="col-sm-3 form-control-label">Name</label>
+                        <div class="col-sm-6">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" value="{{name}}" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 form-control-label">Email</label>
+                        <div class="col-sm-6">
+                        <input type="text" class="form-control" id="email" name="email" value="{{email}}" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <input type="hidden" class="form-control" name = "bankCount" id="bankCount" value="{{bankCount}}">
+                        <input type="hidden" name='bankRecords' id="bankRecords" value = "yes" class="form-control"/>
+                        <label class="col-sm-3 form-control-label">Bank Accounts</label>
+                        <div class="col-sm-6">
+                        <table class="table table-bordered table-hover" id="bank_accounts">
+                            <thead>
+                                <tr>
+                                <th class="text-center" width="5%">#</th>
+                                <th class="text-center" width="50%">Account Name</th>
+                                <th class="text-center" width="45%">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if bankAccounts %}
+                                    {% for ba in bankAccounts %}
+                                        <tr id='bank{{ba.number}}'>
+                                            <td>{{ba.srno}}</td>
+                                            <td>
+                                                <input type="text" name='acc{{ba.number}}'  placeholder='Account Name' class="form-control" value='{{ba.accountName}}'/>
+                                                <input type="hidden" name='accountId{{ba.number}}' value = "{{ba.accountId}}" class="form-control"/>
+                                            </td>
+                                            <td>
+                                                <input type="text" name='bal{{ba.number}}' placeholder='0000' value='{{ba.balance}}' class="form-control"/>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    <tr id='bank{{bankCount}}'></tr>
+                                {% else %}
+                                <tr id='bank0'>
+                                    <td>1</td>
+                                    <td>
+                                        <input type="text" name='acc0'  placeholder='Account Name' class="form-control"/>
+                                    </td>
+                                    <td>
+                                        <input type="text" name='bal0' placeholder='0000' class="form-control"/>
+                                    </td>
+                                </tr>
+                                <tr id='bank1'></tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        <a id="add_bank_row" class="btn btn-default pull-left">Add Row</a><a id='delete_bank_row' class="pull-right btn btn-default">Delete Row</a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <input type="hidden" class="form-control" name = "ccCount" id="ccCount" value="{{ccCount}}">
+                        <input type="hidden" name='ccRecords' id = "ccRecords" value = "yes" class="form-control"/>
+                        <label class="col-sm-3 form-control-label">Credit Cards</label>
+                        <div class="col-sm-6">
+                        <table class="table table-bordered table-hover" id="credit_cards" >
+                            <thead>
+                                <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">CC Name</th>
+                                <th class="text-center">Debt</th>
+                                <th class="text-center">Limit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if ccAccounts %}
+                                    {% for cc in ccAccounts %}
+                                        <tr id='cc{{cc.number}}'>
+                                            <td>{{cc.srno}}</td>
+                                            <td>
+                                                <input type="text" name='cc{{cc.number}}'  placeholder='CC Name' class="form-control" value = '{{cc.ccName}}' />
+                                                <input type="hidden" name='accountId{{cc.number}}' value = "{{cc.accountId}}" class="form-control"/>
+                                            </td>
+                                            <td>
+                                                <input type="text" name='debt{{cc.number}}' placeholder='0000' class="form-control" value = '{{cc.debt}}' />
+                                            </td>
+                                            <td>
+                                                <input type="text" name='limit{{cc.number}}' placeholder='0000' class="form-control" value = '{{cc.limit}}' />
+                                            </td>
+                                        </tr>
+                                    {% endfor %}   
+                                <tr id='cc{{ccCount}}'></tr>
+                                {% else %}
+                                    <tr id='cc0'>
+                                            <td>1</td>
+                                            <td>
+                                                <input type="text" name='cc0'  placeholder='CC Name' class="form-control"/>
+                                            </td>
+                                            <td>
+                                                <input type="text" name='debt0' placeholder='0000' class="form-control"/>
+                                            </td>
+                                            <td>
+                                                <input type="text" name='limit0' placeholder='0000' class="form-control"/>
+                                            </td>
+                                    </tr>
+                                    <tr id='cc1'></tr>    
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        <a id="add_cc_row" class="btn btn-default pull-left">Add Row</a><a id='delete_cc_row' class="pull-right btn btn-default">Delete Row</a>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-offset-5 col-sm-10">
+                            <button type="submit" class="btn btn-primary btn-lg">{{button}}</button>
+                        </div>
+                    </div>
+                </form>
+                
+            <div class="col-sm-2 sidenav"></div>
         </div>
-      </ul>
     </div>
-  </div>
-</nav>
+    <script>
+    var i={{bankCount}};
+     $("#add_bank_row").click(function(){
+      $('#bank'+i).html("<td>"+ (i+1) +"</td><td><input name='acc"+i+"' type='text' placeholder='Account Name' class='form-control input-md'  /></td><td><input  name='bal"+i+"' type='text' placeholder='0000'  class='form-control input-md'></td>");
 
-<div class="jumbotron text-center">
-        <h1>Account Details</h1>
-</div>
-<div class="container">
-    <h2>Personal Details </h2>
-    <form class="form-horizontal" id = "userProfileForm" role="form" action="/{{action}}" method="post"> 
-        <input type="hidden" class="form-control" name = "userId" id="userId" value="{{userId}}">
-        <div class="form-group row">
-            <label for="name" class="col-sm-3 form-control-label">Name</label>
-            <div class="col-sm-9">
-            <input type="text" class="form-control" name = "name" id="name" placeholder="Name" value="{{name}}">
-            </div>
-        </div>
-        <div class="form-group row">
-            <label for="email" class="col-sm-3 form-control-label">Email</label>
-            <div class="col-sm-9">
-            <input type="email" class="form-control" name = "email" id="email" placeholder="email" value="{{email}}" readonly>
-            </div>
-        </div>
-        <div class="form-group row">
-            <label for="company" class="col-sm-3 form-control-label">Company</label>
-            <div class="col-sm-9">
-            <input type="text" class="form-control" name="company" id="company" placeholder="Company" value="{{company}}">
-            </div>
-        </div>
-        <div class="form-group row">
-            <label for="designation" class="col-sm-3 form-control-label">Designation</label>
-            <div class="col-sm-9">
-            <input type="text" class="form-control" name = "designation" id="designation" placeholder="Designation" value="{{designation}}">
-            </div>
-        </div>
-        <div class="form-group row">
-            <label for="salary" class="col-sm-3 form-control-label">Salary</label>
-            <div class="col-sm-6">
-            <input type="text" class="form-control" name = "salary" id="salary" placeholder="00000" value="{{salary}}">
-            </div>
-            <div class="col-sm-3">
-                {% if currency == "INR" %}
-                    <select class="form-control" id="currency" name="currency" value="{{currency}}">
-                      <option>INR</option>
-                      <option>USD</option>
-                    </select>
-                {% else %}
-                    <select class="form-control" id="currency" name="currency" value="{{currency}}">
-                      <option>USD</option>
-                      <option>INR</option>
-                    </select>
-                {% endif %}
-            </div>
-        </div>
-        <div class="form-group row">
-            <label for="debt" class="col-sm-3 form-control-label">Debt</label>
-            <div class="col-sm-9">
-                <input type="text" class="form-control" name = "debt" id="debt" placeholder="00000" value="{{debt}}">
-            </div>
-        </div>
-        <div class="form-group row">
-            <div class="col-sm-offset-5 col-sm-10">
-                <button type="submit" class="btn btn-primary">{{button}}</button>
-            </div>
-        </div>
-    </form>
-    <hr style="width: 100%; color: black; height: 1px; background-color:black;" />
-    <h2>Household information</h2>           
-  <table class="table table-striped" id="householdTable">
-    <thead>
-      <tr>
-        <th class="col-md-4">Household name</th>
-        <th class="col-md-8">Members</th>
-      </tr>
-    </thead>
-    <tbody>
-        {% if hhTable %}
-            {% for h in hhTable %}
-                <tr>
-                    <td>{{h.hname}}</td>
-                    <td>{{h.members}}</td>
-                </tr>
-            {% endfor %}
-        {% endif %}
-    </tbody>
-  </table>
-</div>
-</div>
-<script>
-function reload() {
-    location.reload();
-}
-</script>
-</body>        
+      $('#bank_accounts').append('<tr id="bank'+(i+1)+'"></tr>');
+      i++; 
+      document.getElementById("bankCount").value = i;
+      document.getElementById("bankRecords").value = "yes";
+  });
+     $("#delete_bank_row").click(function(){
+         if(i>0){
+             $("#bank"+(i-1)).html('');
+             i--;
+             document.getElementById("bankCount").value = i;
+             if(i == 0){
+                document.getElementById("bankRecords").value = "no";
+             }
+         }
+     });
+     
+     
+     var j={{ccCount}};
+     $("#add_cc_row").click(function(){
+      $('#cc'+j).html("<td>"+ (j+1) +"</td><td><input name='cc"+j+"' type='text' placeholder='CC Name' class='form-control input-md'  /></td><td><input  name='debt"+j+"' type='text' placeholder='0000'  class='form-control input-md'></td><td><input name='limit"+j+"' type='text' placeholder='0000'  class='form-control input-md'></td>");
+
+      $('#credit_cards').append('<tr id="cc'+(j+1)+'"></tr>');
+      j++; 
+      document.getElementById("ccCount").value = j;
+  });
+     $("#delete_cc_row").click(function(){
+         if(j>0){
+         $("#cc"+(j-1)).html('');
+         j--;
+         document.getElementById("ccCount").value = j;
+         if(j == 0){
+                document.getElementById("ccRecords").value = "no";
+             }
+         }
+     });
+     
+    </script>
+    </body>
 </html>
 {% endautoescape %}

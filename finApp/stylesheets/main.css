@@ -1,248 +1,37 @@
-
-input.invalid{
-	border: 2px solid red;
-}
-		
-input.valid{
-	border: 2px solid green;
-}
-
-body {
-      font: 400 15px Lato, sans-serif;
-      line-height: 1.8;
-      color: #1a1a1a;
-}
-  
-h2 {
-    font-size: 24px;
-    text-transform: uppercase;
-    color: #303030;
-    font-weight: 600;
-    margin-bottom: 30px;
-}
-
-h4 {
-    font-size: 19px;
-    line-height: 1.375em;
-    color: #303030;
-    font-weight: 400;
-    margin-bottom: 30px;
-} 
- 
-.jumbotron {
-    background-color: black;
-    color: #fff;
-    padding: 100px 25px;
-    font-family: Montserrat, sans-serif;
-}
-
-.container-fluid {
-    padding: 60px 50px;
-}
-
-.navbar {
-    margin-bottom: 0;
-    background-color: black;
-    z-index: 9999;
-    border: 0;
-    font-size: 12px !important;
-    line-height: 1.42857143 !important;
-    letter-spacing: 1px;
-    font-family: Montserrat, sans-serif;
-  }
-  
-.navbar li a, .navbar .navbar-brand {
-    color: #fff !important;
-}
-
-.navbar-nav li a:hover, .navbar-nav li.active a {
-    color: white !important;
-    background-color: #813772 !important;
-}
-
-.navbar-default .navbar-toggle {
-    border-color: transparent;
-    color: #fff !important;
-}
-  
-.center {
-    margin: auto;
-    width: 60%;
-}
-  
-#formDiv{
-    height: 40px;
-    width: 400px;
-    margin: auto;
-}
-#fullImage {
-    max-width: 100%;
-    max-height: 100%;
-}
-
-.imageContainer{
-   width:100%;
-}
-
-.icon-input-btn{
-    display: inline-block;
-    position: relative;
-}
-.icon-input-btn input[type="submit"]{
-    padding-left: 2em;
-}
-
-.icon-input-btn .glyphicon{
-    display: inline-block;
-    position: absolute;
-    left: 0.65em;
-    top: 30%;
-}
-
-.dropbtn {
-    background-color: black;
-    color: white;
-    padding: 16px;
-    border: none;
-    cursor: pointer;
-}
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #813772;
-    min-width: 180px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    right: 0;
-}
-
-.dropdown-content a {
-    color: white;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-transform: uppercase;
-    text-align: left;
-}
-
-.dropdown-content a:hover {background-color: #064f4f}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-.dropdown:hover .dropbtn {
-    background-color: #813772;
-}
-
-.profileForm{
-    background : red;
-    display:flex;
-    color: #fff;
-    font-family: Tahoma, Verdana, Segoe, sans-serif;
-    padding: 10px;
-    width: 50%;
-    margin:0 auto;
+/* Remove the navbar's default margin-bottom and rounded borders */
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
     
-}
-.fixed{
-    /*background-color:red;*/
-    flex: 0.2;
-}
-.flex-item{
-    /*background-color:orange;*/
-    flex-grow: 0.8;
-}
-
-#imageLocation{
-    padding : 10px;
-}
-
-.form-group{
-    color : black !important;
-    text-transform: uppercase;
-}
-.form-inline {
-    padding:10px;
-}
-.form-inline > * {
-    margin:15px 3px !important;
-}
-
-
-
-.table-editable {
-  position: relative;
-  
-  .glyphicon {
-    font-size: 20px;
-  }
-}
-
-.table-remove {
-  color: #700;
-  cursor: pointer;
-  
-  &:hover {
-    color: #f00;
-  }
-}
-
-.table-up, .table-down {
-  color: #007;
-  cursor: pointer;
-  
-  &:hover {
-    color: #00f;
-  }
-}
-
-.table-add {
-  color: #070;
-  cursor: pointer;
-  position: absolute;
-  top: 8px;
-  right: 0;
-  
-  &:hover {
-    color: #0b0;
-  }
-}
-
-#element1 {float:left;}
-#element2 {padding-left : 20px;float:left;}
-
-#emailColumn {
-    display: block;
-}
-
-.left {
-    width: 30%;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    -ms-text-overflow:ellipsis;
-    float: left;
-}
-.right {
-    white-space:nowrap;
-    overflow:hidden;
-}
-
-.modal {
-   position: absolute;
-   bottom: 0;
-   left: 0;
-   z-index: 10040;
-   overflow: auto;
-   overflow-y: auto;
-}
-
-.form-control[readonly="readonly"], .form-control[readonly] { background-color:white; }
-
-
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 450px}
+    
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 20px;
+      height: 100%;
+    }
+    
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height:auto;}
+    }
+    
+    .form-control[readonly="readonly"], .form-control[readonly] { background-color:white; }
+    
+    .form-group{
+        color : black !important;
+        text-transform: uppercase;
+        font-size: 15px;
+    }
+    .form-inline {
+        padding:10px;
+    }
+    .form-inline > * {
+        margin:15px 3px !important;
+    }
